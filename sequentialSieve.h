@@ -4,7 +4,7 @@
 #include <bsp.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "../BSPedupack2.0/bspedupack.h"
+#include "edupack/bspedupack.h"
 
 static long ceilSqrt(int x){
     // Base cases

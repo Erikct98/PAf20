@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "sequentialSieve.h"
-//#include "../BSPedupack2.0/bspedupack.h"
 
 static unsigned int P;
 static const unsigned long S = 1000;
