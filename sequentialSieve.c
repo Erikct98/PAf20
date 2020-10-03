@@ -1,4 +1,5 @@
 #include "sieve.h"
+#include <time.h>
 
 /*
  * sequentialSieveBasic
@@ -6,17 +7,13 @@
  * No fancy trickery
  */
 void sequentialSieveBasic(){
-    double startTime, endTime;
-
-    // Start process
-    bsp_begin(1);
-    long pid = bsp_pid();
+    clock_t startTime, endTime;
 
     // Start timing
-    if (pid == 0) startTime = bsp_time();
+    startTime = clock();
 
     // Setup sieve
-    bool *sieve = vecallocb(S);
+    bool* sieve = malloc(S * sizeof(bool));
     for (int i = 0; i < S; i++){
         sieve[i] = true;
     }
@@ -36,20 +33,17 @@ void sequentialSieveBasic(){
     // Report primes
     for (long i = 1; i < S; i++){
         if (sieve[i]){
-            printf("Found a prime: %ld\n", i);
+            printf("%ld,", i);
         }
     }
 
-    // Report running time
-    if (pid == 0){
-        endTime = bsp_time();
-        printf("sequentialSieveBasic time: %f\n", endTime - startTime);
-    }
-
     // Clean up memory
-    vecfreeb(sieve);
+    free(sieve);
 
-    bsp_end();
+    // Report running time
+    endTime = clock();
+    clock_t time_taken = (endTime - startTime);
+    printf("\nsequentialSieveBasic time: %ld to %ld (%f)\n", startTime, endTime, (double)time_taken / CLOCKS_PER_SEC);
 }
 
 /*
@@ -58,17 +52,13 @@ void sequentialSieveBasic(){
  * Does not take multiples of two into account
  */
 void sequentialSieveAdvanced(){
-    double startTime, endTime;
-
-    // Start process
-    bsp_begin(1);
-    long pid = bsp_pid();
+    clock_t startTime, endTime;
 
     // Start timing
-    if (pid == 0) startTime = bsp_time();
+    startTime = clock();
 
     // Setup sieve
-    bool *sieve = vecallocb(S/2);
+    bool *sieve = malloc(S/2 * sizeof(bool));
     for (int i = 0; i < S/2; i++){
         sieve[i] = true;
     }
@@ -91,20 +81,17 @@ void sequentialSieveAdvanced(){
     for (long i = 1; i < S/2; i++){
         if (sieve[i]){
             long p = 2 * i + 1;
-            printf("Found a prime: %ld\n", p);
+            printf("%ld,", p);
         }
     }
 
-    // Report running time
-    if (pid == 0) {
-        endTime = bsp_time();
-        printf("sequentialSieveAdvanced time: %f\n", endTime - startTime);
-    }
-
     // Clean up memory
-    vecfreeb(sieve);
+    free(sieve);
 
-    bsp_end();
+    // Report running time
+    endTime = clock();
+    clock_t time_taken = (endTime - startTime);
+    printf("\nsequentialSieveBasic time: %ld to %ld (%f)\n", startTime, endTime, (double)time_taken / CLOCKS_PER_SEC);
 }
 
 int main(int argc, char **argv) {
@@ -120,10 +107,8 @@ int main(int argc, char **argv) {
     }
 
     if (decide == 0){
-        bsp_init(&sequentialSieveBasic, argc, argv);
         sequentialSieveBasic();
     } else if (decide == 1){
-        bsp_init(&sequentialSieveAdvanced, argc, argv);
         sequentialSieveAdvanced();
     }
 

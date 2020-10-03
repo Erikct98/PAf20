@@ -71,6 +71,9 @@ void parallelSieve() {
         }
     }
 
+    // Determine end time
+    if (pid == 0) endTime = bsp_time();
+
     // Report primes
     for (int i = 0; i < P; i++) {
         if (pid == i) {
@@ -82,10 +85,7 @@ void parallelSieve() {
     }
 
     // Report running time
-    if (pid == 0){
-        endTime = bsp_time();
-        printf("Time: %f\n", endTime - startTime);
-    }
+    if (pid == 0) printf("Time: %f\n", endTime - startTime);
 
     bsp_end();
 }
