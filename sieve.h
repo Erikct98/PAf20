@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "edupack/bspedupack.h"
 
-static const unsigned long S = 10000;
+static const unsigned long S = 1000;
 
 /*
  * Returns the integer closest to the square root of x
@@ -38,13 +38,13 @@ long max(long one, long two){
     return one > two ? one : two;
 }
 
-long lcm(long one, long two){
+long gcd(long one, long two){
     if (two == 0) return one;
-    return lcm(two, one % two);
+    return gcd(two, one % two);
 }
 
-long gcd(long one, long two){
-    return one * two / lcm(one, two);
+long lcm(long one, long two){
+    return one * two / gcd(one, two);
 }
 
 #endif //PAF20_PARALLELALGORITHMS_SIEVE_H

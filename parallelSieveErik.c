@@ -84,6 +84,11 @@ void parallelSieve() {
         bsp_sync();
     }
 
+    // Release memory
+    bsp_pop_reg(&NextPrime);
+    bsp_pop_reg(Vec);
+    vecfreeb(Vec);
+
     // Report running time
     if (pid == 0) printf("Time: %f\n", endTime - startTime);
 
