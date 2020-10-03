@@ -1,19 +1,23 @@
-CC= bspcc
-CFLAGS= -std=c99 -Wall -O3
-LFLAGS= -lm
+CC     = bspcc
+CFLAGS = -std=c99 -Wall -O3
+LFLAGS = -lm
 
-OBJSIEVE= parallelSieveErik.o
-OBJEDUPACK = edupack/bspedupack.o
+OBJSIEVEERIK  = parallelSieveErik.o
+OBJSIEVEDAVID = parallelSieveDavid.o
+OBJEDUPACK    = edupack/bspedupack.o
 
 
-all: sieve
+all: sieveErik sieveDavid
 
-sieve: $(OBJSIEVE) $(OBJEDUPACK)
-	$(CC) $(CFLAGS) -o sieve $(OBJSIEVE) $(OBJEDUPACK) $(LFLAGS)
+sieveErik: $(OBJSIEVEERIK) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sieveErik $(OBJSIEVEERIK) $(OBJEDUPACK) $(LFLAGS)
+
+sieveDavid: $(OBJSIEVEDAVID) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sieveDavid $(OBJSIEVEDAVID) $(OBJEDUPACK) $(LFLAGS)
 
 
 .PHONY: clean
 
 clean:
-	rm -f $(OBJSIEVE) sieve
+	rm -f $(OBJSIEVEERIK) $(OBJSIEVEDAVID) $(OBJEDUPACK) sieveErik sieveDavid
 

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "edupack/bspedupack.h"
+#include "time.h"
 
 static long ceilSqrt(int x){
     // Base cases
@@ -33,7 +34,9 @@ long max(long one, long two){
 }
 
 void sequentialSieve(long S){
-    bool sieve[S];
+    clock_t startTime = clock();
+
+    bool* sieve = malloc(S * sizeof(bool));
 
     // Assume all are prime
     for (int i = 0; i < S; i++){
@@ -45,11 +48,11 @@ void sequentialSieve(long S){
 //    printf("Found upper bound: %ld\n", sqrtS);
 
     // Run sieve
-    printf("Found a prime: %u\n", 2);
+//    printf("Found a prime: %u\n", 2);
     for (long i = 1; i < sqrtS; i++){
         if (sieve[i]){
             long p = 2 * i + 1;
-            printf("Found a prime: %ld\n", p);
+//            printf("Found a prime: %ld\n", p);
             for (long j = i * (p+1); j < S; j += p){
                 sieve[j] = false;
             }
@@ -59,9 +62,23 @@ void sequentialSieve(long S){
     for (long i = 1; i < S; i++){
         if (sieve[i]){
             long p = 2 * i + 1;
-            printf("Found a prime: %ld\n", p);
+            printf("%ld, ", p);
         }
     }
+
+//    while (1) {
+//        if (getchar())
+//            break;
+//    }
+
+    free(sieve);
+
+    clock_t endTime = clock();
+
+    clock_t time_taken = (endTime - startTime);
+
+    printf("\nTook: %ld to %ld (%f)\n", startTime, endTime, (double)time_taken / CLOCKS_PER_SEC);
+
 }
 
 #endif //PAF20_PARALLELALGORITHMS_SEQUENTIALSIEVE_H

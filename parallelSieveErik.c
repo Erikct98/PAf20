@@ -4,7 +4,7 @@
 #include "sequentialSieve.h"
 
 static unsigned int P;
-static const unsigned long S = 1000;
+static const unsigned long S = 1000 * 1000 * 1000;
 
 void parallelSieve() {
     /** Begin parallel processing **/
@@ -12,6 +12,8 @@ void parallelSieve() {
     long p = bsp_nprocs();
     long pid = bsp_pid();
     long csqrtS = ceilSqrt((int) S);
+
+    double startTime = bsp_time();
 
     /** Setup sieve vector for all processes */
     // Have all processes determine the interval of their vector
@@ -41,7 +43,7 @@ void parallelSieve() {
 
     /** Sieving **/
     long primeIndex = 1;
-    while (primeIndex < csqrtS) {
+    while (primeIndex <= csqrtS) {
         primeIndex++;
         // Find next prime
         if (pid == 0) {
@@ -76,6 +78,8 @@ void parallelSieve() {
         }
     }
 
+    double endTime = bsp_time();
+
     /** Print found primes **/
     for (int i = 0; i < P; i++) {
         if (pid == i) {
@@ -87,6 +91,8 @@ void parallelSieve() {
     }
 
     bsp_end();
+
+    printf("\nThat took: %2.5f\n", (endTime - startTime));
 }
 
 int main(int argc, char **argv) {
