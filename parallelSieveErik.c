@@ -1,71 +1,66 @@
-#include <bsp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "sequentialSieve.h"
+#include "sieve.h"
 
 static unsigned int P;
-static const unsigned long S = 1000;
 
 void parallelSieve() {
-    /** Begin parallel processing **/
-    bsp_begin(P);
-    long p = bsp_nprocs();
-    long pid = bsp_pid();
-    long csqrtS = ceilSqrt((int) S);
+    double startTime, endTime;
 
-    /** Setup sieve vector for all processes */
-    // Have all processes determine the interval of their vector
-    bool *Vec;
-    long start_size = max(csqrtS, (S + p - 1) / p);
+    // Start process
+    bsp_begin(P);
+    long pid = bsp_pid();
+
+    // Begin timing
+    if (pid == 0) startTime = bsp_time();
+
+    /** Setup sieve **/
+    long p = bsp_nprocs();
+    long fsqrtS = intSqrt(S, true);
+    long start_size = max(fsqrtS + 1, (S + p - 1) / p);
     long size, intervalStart = 0;
     if (pid == 0) {
         size = start_size;
     } else {
         size = (S - start_size) / (p - 1);
         long extra = (S - start_size) % (p - 1);
-        intervalStart = start_size + (pid - 1) * size + min(extra, (pid - 1));
         if (extra > pid - 1) size++;
+        intervalStart = start_size + (pid - 1) * size + min(extra, pid - 1);
     }
-    Vec = vecallocb(size);
+    bool *Vec = vecallocb(size);
     bsp_push_reg(Vec, size * sizeof(bool));
-
-    // Have all processes clean their vector
     for (int i = 0; i < size; i++) {
         Vec[i] = true;
     }
 
-    /** Setup nextPrime field for all processes **/
+    // Setup nextPrime field
     long NextPrime = -1;
     bsp_push_reg(&NextPrime, sizeof(long));
     bsp_sync();
 
-    /** Sieving **/
+    // Run sieve
     long primeIndex = 1;
-    while (primeIndex < csqrtS) {
-        primeIndex++;
-        // Find next prime
+    while (true) {
         if (pid == 0) {
+            primeIndex++;
+
+            // Have processor 0 find the next prime
             while (!Vec[primeIndex]) {
                 primeIndex++;
             }
-
             // Prepare to stop if large smallest prime is greater than sqrt(S)
-            if (primeIndex > csqrtS) {
+            if (primeIndex > fsqrtS) {
                 primeIndex = -1;
             }
-
-            // Communicate next prime other processes
+            // Communicate next prime to other processes
             for (int i = 0; i < P; i++) {
                 bsp_put(i, &primeIndex, &NextPrime, 0, sizeof(long));
             }
         }
 
+        // Synchronize
         bsp_sync();
 
         // Quit if we have found all primes
-        if (NextPrime < 0) {
-            break;
-        }
+        if (NextPrime < 0) break;
 
         // Remove all multiples of the prime
         long startIndex = max(
@@ -76,7 +71,7 @@ void parallelSieve() {
         }
     }
 
-    /** Print found primes **/
+    // Report primes
     for (int i = 0; i < P; i++) {
         if (pid == i) {
             long begin = pid == 0 ? 2 : 0;
@@ -84,6 +79,12 @@ void parallelSieve() {
                 if (Vec[j]) printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
         }
         bsp_sync();
+    }
+
+    // Report running time
+    if (pid == 0){
+        endTime = bsp_time();
+        printf("Time: %f\n", endTime - startTime);
     }
 
     bsp_end();
