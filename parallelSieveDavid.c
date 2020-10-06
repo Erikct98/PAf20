@@ -1,17 +1,16 @@
-#include "sequentialSieve.h"
 #include <bsp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "sieve.h"
 
 static unsigned int P;
-static const unsigned long S = 10000 * 1000;
 
 void parallelSieve() {
     /** Begin parallel processing **/
     bsp_begin(P);
     long p = bsp_nprocs();
     long pid = bsp_pid();
-    long csqrtS = ceilSqrt((int) S);
+    long csqrtS = intSqrt((int) S, false);
 
 //    printf("its ya boi: %ld\n", pid);
 
