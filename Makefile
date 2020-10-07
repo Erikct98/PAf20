@@ -2,33 +2,39 @@ CC     = bspcc
 CFLAGS = -std=c99 -Wall -O3
 LFLAGS = -lm
 
-OBJSIEVESEQ   = sequentialSieve.o
-OBJSIEVEERIK  = parallelSieveErik.o
-OBJSIEVEDAVID = parallelSieveDavid.o
-BASEFILES    = sieve.h
-OBJEDUPACK    = edupack/bspedupack.o
-OBJSIEVEODD   = parallelSieveCantEven.o
+BASEFILES      = sieve.h
+OBJEDUPACK     = edupack/bspedupack.o
+OBJSIEVESEQ    = sequentialSieve.o
+OBJSIEVEPAR    = parallelSieve.o
+OBJSIEVEPARGAP = parallelSieveGap.o
+OBJSIEVEPARODD = parallelSieveOdd.o
+OBJSIEVEPARDAVID = parallelSieveDavid.o
 
-all: sieveErik sieveDavid sieveSeq sieveOdd
+all: sieveSeq sievePar sieveParGap sieveParOdd sieveParDavid
 
-parallelSieveErik.o: sieve.h
+sequentialSieve.o: sieve.h
+parallelSievePar.o: sieve.h
+parallelSieveParGap.o: sieve.h
+parallelSieveParOdd.o: sieve.h
 parallelSieveDavid.o: sieve.h
-parallelSieveCantEven.o: sieve.h
 
 sieveSeq: $(OBJSIEVESEQ) $(OBJEDUPACK)
 	$(CC) $(CFLAGS) -o sieveSeq $(OBJSIEVESEQ) $(OBJEDUPACK) $(LFLAGS)
 
-sieveErik: $(OBJSIEVEERIK) $(OBJEDUPACK)
-	$(CC) $(CFLAGS) -o sieveErik $(OBJSIEVEERIK) $(OBJEDUPACK) $(LFLAGS)
+sievePar: $(OBJSIEVEPAR) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sievePar $(OBJSIEVEPAR) $(OBJEDUPACK) $(LFLAGS)
 
-sieveDavid: $(OBJSIEVEDAVID) $(OBJEDUPACK)
-	$(CC) $(CFLAGS) -o sieveDavid $(OBJSIEVEDAVID) $(OBJEDUPACK) $(LFLAGS)
+sieveParGap: $(OBJSIEVEPARGAP) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sieveParGap $(OBJSIEVEPARGAP) $(OBJEDUPACK) $(LFLAGS)
 
-sieveOdd: $(OBJSIEVEODD) $(OBJEDUPACK)
-	$(CC) $(CFLAGS) -o sieveOdd $(OBJSIEVEODD) $(OBJEDUPACK) $(LFLAGS)
+sieveParOdd: $(OBJSIEVEPARODD) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sieveParOdd $(OBJSIEVEPARODD) $(OBJEDUPACK) $(LFLAGS)
+
+sieveParDavid: $(OBJSIEVEPARDAVID) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -o sieveParDavid $(OBJSIEVEPARDAVID) $(OBJEDUPACK) $(LFLAGS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(OBJSIEVEERIK) $(OBJSIEVEDAVID) $(OBJSIEVESEQ) $(OBJEDUPACK) $(OBJSIEVEODD) sieveErik sieveDavid sieveSeq sieveOdd
+	rm -f $(OBJSIEVESEQ) $(OBJSIEVEPAR) $(OBJSIEVEPARGAP) $(OBJSIEVEPARODD) $(OBJSIEVEDAVID) $(OBJEDUPACK) sieveSeq sievePar sieveParGap sieveParOdd sieveParDavid
 
