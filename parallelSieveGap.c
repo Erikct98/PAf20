@@ -2,7 +2,7 @@
 
 static unsigned int P;
 
-void parallelSieveV2() {
+void parallelSieveGap() {
     double startTime, endTime;
 
     // Start process
@@ -124,8 +124,8 @@ int main(int argc, char **argv) {
     }
 
     printf("nr processes: %d\n", P);
-    bsp_init(&parallelSieveV2, argc, argv);
-    parallelSieveV2();
+    bsp_init(&parallelSieveGap, argc, argv);
+    parallelSieveGap();
 
     return EXIT_SUCCESS;
 }
