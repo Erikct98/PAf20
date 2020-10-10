@@ -1,5 +1,7 @@
 #include "sieve.h"
 
+//#define GOLDBACH_CONJECTURE
+
 static unsigned int P;
 
 void parallelSieve() {
@@ -98,6 +100,8 @@ void parallelSieve() {
     // Determine end time
     if (pid == 0) endTime = bsp_time();
 
+#ifndef GOLDBACH_CONJECTURE
+
     // Report primes
     for (int i = 0; i < P; i++) {
         if (pid == i) {
@@ -110,10 +114,73 @@ void parallelSieve() {
         bsp_sync();
     }
 
+#else
+    bsp_sync();
+
+
+    bool* allPrimes = vecallocb(N);
+    bsp_push_reg(allPrimes, N * sizeof(bool));
+
     // Release memory
     bsp_pop_reg(&NextPrime);
+
+    bsp_sync();
+
+    for (int t = 0; t < p; t++) {
+//        printf("%ld putting %ld with offset=%ld, size=%ld, 0x%x\n", pid, t, intervalStart, size, allPrimes);
+        bsp_put(t, Vec, allPrimes, intervalStart * sizeof(bool), size * sizeof(bool));
+    }
+
     bsp_pop_reg(Vec);
     vecfreeb(Vec);
+
+    bsp_sync();
+
+    // we do not actually know 2 is prime so we skip 4
+
+    long counterExample = -1;
+
+    for (long n = 4 + 2 * (pid); n < S + 1; n += 2 * (p - 1)) {
+        bool found = false;
+        for (int i = 0; i < (N + 1) / 2; ++i) {
+            if (allPrimes[i]) {
+                if (allPrimes[(n - (i * 2 + 1)) / 2]) {
+#ifdef OUTPUT_GOLDBACH
+                    printf("A sum for: %ld=%ld + %ld\n", n, i * 2 + 1, n - (i * 2 + 1));
+#endif
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            counterExample = n;
+            break;
+        }
+    }
+
+    bsp_sync();
+
+    if (counterExample > 0) {
+        printf("%ld found counter-example: %ld\n", pid, counterExample);
+    } else {
+        printf("%ld found no counter example up to: %ld\n", pid, S + 1 );
+    }
+
+
+    bsp_pop_reg(allPrimes);
+    vecfreeb(allPrimes);
+
+#endif
+
+#ifndef GOLDBACH_CONJECTURE
+    // Release memory
+    bsp_pop_reg(&NextPrime);
+
+    bsp_pop_reg(Vec);
+    vecfreeb(Vec);
+
+#endif
 
     // Report running time
     if (pid == 0) printf("Time: %f\n", endTime - startTime);
@@ -123,12 +190,14 @@ void parallelSieve() {
 
 int main(int argc, char **argv) {
     // Ask for sieve length
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    scanf("%u", &P);
-    if (P == 0 || P > bsp_nprocs()) {
-        fprintf(stderr, "Cannot use %u processors.\n", P);
-    }
+//    printf("How many processors do you want to use?\n");
+//    fflush(stdout);
+//    scanf("%u", &P);
+//    if (P == 0 || P > bsp_nprocs()) {
+//        fprintf(stderr, "Cannot use %u processors.\n", P);
+//    }
+
+    P = 4;
 
     bsp_init(&parallelSieve, argc, argv);
     parallelSieve();
