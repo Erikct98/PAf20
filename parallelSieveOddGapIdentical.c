@@ -57,14 +57,15 @@ long sievePrime(bool *sieve, long start, long gap, long size, long p, long P, lo
 //    printf("%ld, %ld, %ld, %ld, %ld\n", p, primeIdx, primeSqrIdx, offset, m_inv);
 
     // Sieve primes
-    if (m_inv > 0 || offset % p == 0){
-        long startIndex = (primeSqrIdx + ((offset * (m_inv == 0 ? 1 : m_inv)) % P) * p) / P; // local TODO: fix hack
-        long stepSize = p / gcd(p, gap);
-//        printf("%ld, %ld\n", startIndex, stepSize);
-        for (int j = startIndex; j < size; j += stepSize) {
-            sieve[j] = false;
+    long startIndex = size, stepSize = p / gcd(p, gap);
+    if (m_inv > 0) {
+        startIndex = (primeSqrIdx + ((offset * m_inv) % P) * p) / P; // local
+    } else if (offset % p == 0) {
+        startIndex = (primeSqrIdx + offset) / P; // local
+    }
+    for (int j = startIndex; j < size; j += stepSize) {
+        sieve[j] = false;
 //            printf("pid %ld: removing %ld\n", pid, getNumber(j * P + start));
-        }
     }
 //    printf("=================================\n");
 }
@@ -117,7 +118,7 @@ void parallelSieveGapAndOdd() {
         sievePrime(sieve, sieveStart, gap, sieveSize, basicPrimes[i], P, pid);
     }
 
-    // Determine chunck bounds
+    // Determine chunk bounds
     long start = basicPrimes[nrBasicPrimes - 1] + 2;
     long startIdx = getIndex(start); // Global idx
     int chunkSize = start * startIdx; // Global size
@@ -171,19 +172,19 @@ void parallelSieveGapAndOdd() {
 
     bsp_sync();
 
-//    // Report primes
-//    for (int i = 0; i < P; i++) {
-//        if (pid == i) {
-////            printf("\n pid: %ld ---", pid);
-//            long begin = pid == 0 ? 1 : 0;
-//            for (long j = begin; j < sieveSize; j++)
-////                printf("%d,", sieve[j]);
-//                if (sieve[j]) {
-//                    printf("%ld, ", getNumber(sieveStart + j * P)); // Convert local index to prime
-//                }
-//        }
-//        bsp_sync();
-//    }
+    // Report primes
+    for (int i = 0; i < P; i++) {
+        if (pid == i) {
+//            printf("\n pid: %ld ---", pid);
+            long begin = pid == 0 ? 1 : 0;
+            for (long j = begin; j < sieveSize; j++)
+//                printf("%d,", sieve[j]);
+                if (sieve[j]) {
+                    printf("%ld, ", getNumber(sieveStart + j * P)); // Convert local index to prime
+                }
+        }
+        bsp_sync();
+    }
 #endif
 
     // Clean up
