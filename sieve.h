@@ -47,4 +47,8 @@ long lcm(long one, long two){
     return one * two / gcd(one, two);
 }
 
+long ceildiv(long n, long d){
+    return (n + d - 1) / d;
+}
+
 #endif //PAF20_PARALLELALGORITHMS_SIEVE_H
