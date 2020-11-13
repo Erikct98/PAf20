@@ -18,6 +18,10 @@ bool interference(int *board, int idx) {
 bool recursiveCall(int *board, bool *used, int idx);
 
 bool recursiveCall(int *board, bool *used, int idx) {
+    if (idx == N) {
+        return true;
+    }
+
     for (int i = 0; i < N; i++) {
         if (!used[i]) {
             board[idx] = i;
@@ -39,7 +43,7 @@ void recursiveSolve() {
 
     // Setup sieve
     int *board = malloc(N * sizeof(int));
-    int *used = malloc(N * sizeof(bool));
+    bool *used = malloc(N * sizeof(bool));
     for (int i = 0; i < N; i++) board[i] = -1;
 
     // Start recursive call
@@ -52,8 +56,11 @@ void recursiveSolve() {
     if (!foundSolution) {
         printf("Failed to find a solution!\n");
     } else {
-        // TODO: print solution.
+        printBoard(N, board);
     }
+
+    free(board);
+    free(used);
 
     // Report running time
     clock_t time_taken = (endTime - startTime);
