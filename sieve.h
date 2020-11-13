@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include "edupack/bspedupack.h"
 
-static const unsigned long S = 1000;
+static unsigned long S = 1l * 1000l * 1000l * 1000l;
 
 /*
  * Returns the integer closest to the square root of x

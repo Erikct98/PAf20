@@ -78,8 +78,14 @@ void parallelSieve() {
     for (int i = 0; i < P; i++) {
         if (pid == i) {
             long begin = pid == 0 ? 2 : 0;
-            for (long j = begin; j < size; j++)
-                if (Vec[j]) printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+//            for (long j = begin; j < size; j++)
+//                if (Vec[j]) printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+            for (long j = size - 1; j >= begin; --j) {
+                if (Vec[j]) {
+                    printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+                    break;
+                }
+            }
         }
         bsp_sync();
     }
@@ -90,18 +96,31 @@ void parallelSieve() {
     vecfreeb(Vec);
 
     // Report running time
-    if (pid == 0) printf("Time: %f\n", endTime - startTime);
+    if (pid == 0) printf("\nParallel sieve with %ld procs up to %ld Time: %f\n", p, S, endTime - startTime);
 
     bsp_end();
 }
 
 int main(int argc, char **argv) {
     // Ask for sieve length
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    scanf("%u", &P);
+
+    if (argc > 1) {
+        P = atoi(argv[1]);
+    } else {
+        printf("How many processors do you want to use?\n");
+        fflush(stdout);
+        scanf("%u", &P);
+    }
+
+    if (argc > 2) {
+        S = atoll(argv[2]);
+//        printf("running to %ld (%s)", S, argv[2]);
+    }
+
+
     if (P == 0 || P > bsp_nprocs()) {
         fprintf(stderr, "Cannot use %u processors.\n", P);
+        return -1;
     }
 
     bsp_init(&parallelSieve, argc, argv);

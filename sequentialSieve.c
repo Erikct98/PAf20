@@ -14,7 +14,7 @@ void sequentialSieveBasic() {
 
     // Setup sieve
     bool *sieve = malloc(S * sizeof(bool));
-    for (int i = 0; i < S; i++) {
+    for (long i = 0; i < S; i++) {
         sieve[i] = true;
     }
 
@@ -34,18 +34,20 @@ void sequentialSieveBasic() {
     endTime = clock();
 
     // Report primes
-    for (long i = 2; i < S; i++) {
+    for (long i = S - 1; i >= 0; --i) {
         if (sieve[i]) {
             printf("%ld,", i);
+            break;
         }
     }
+
 
     // Clean up memory
     free(sieve);
 
     // Report running time
     clock_t time_taken = (endTime - startTime);
-    printf("\nsequentialSieveBasic time: %ld to %ld (%f)\n", startTime, endTime, (double) time_taken / CLOCKS_PER_SEC);
+    printf("\nTo %ld sequentialSieveBasic time: %f\n", S, (double) time_taken / CLOCKS_PER_SEC);
 }
 
 /*
@@ -56,12 +58,21 @@ void sequentialSieveBasic() {
 void sequentialSieveAdvanced() {
     clock_t startTime, endTime;
 
+
+//    printf("0\n");
+
+
     // Start timing
     startTime = clock();
 
+//    printf("0\n");
+
     // Setup sieve
     bool *sieve = malloc(S / 2 * sizeof(bool));
-    for (int i = 0; i < S / 2; i++) {
+    if (sieve == NULL)
+        exit(-1);
+
+    for (long i = 0; i < S / 2; i++) {
         sieve[i] = true;
     }
 
@@ -82,30 +93,47 @@ void sequentialSieveAdvanced() {
     endTime = clock();
 
     // Report primes
-    printf("%ld,", 2l);
-    for (long i = 1; i < S / 2; i++) {
+//    printf("%ld,", 2l);
+//    for (long i = 1; i < S / 2; i++) {
+//        if (sieve[i]) {
+//            long p = 2 * i + 1;
+//            printf("%ld,", p);
+//        }
+//    }
+    for (long i = S / 2 - 1; i >= 0; --i) {
         if (sieve[i]) {
-            long p = 2 * i + 1;
-            printf("%ld,", p);
+            printf("%ld,", 2 * i + 1);
+            break;
         }
     }
+
 
     // Clean up memory
     free(sieve);
 
     // Report running time
     clock_t time_taken = (endTime - startTime);
-    printf("\nsequentialSieveBasic time: %ld to %ld (%f)\n", startTime, endTime, (double) time_taken / CLOCKS_PER_SEC);
+    printf("\nTo %ld sequentialSieveAdvanced time: %f\n", S, (double) time_taken / CLOCKS_PER_SEC);
 }
 
 int main(int argc, char **argv) {
-    int decide;
+    int decide = 0;
+    if (argc > 1) {
+        decide = atoi(argv[1]);
+    } else {
+        printf("Which version do you want to run?\n");
+        printf("0: sequentialSieveBasic\n");
+        printf("1: sequentialSieveAdvanced\n");
+        fflush(stdout);
+        scanf("%u", &decide);
+    }
     // Ask for sieve length
-    printf("Which version do you want to run?\n");
-    printf("0: sequentialSieveBasic\n");
-    printf("1: sequentialSieveAdvanced\n");
-    fflush(stdout);
-    scanf("%u", &decide);
+
+    if (argc > 2) {
+        S = atoll(argv[2]);
+//        printf("running to %ld (%s)", S, argv[2]);
+    }
+
     if (decide < 0 || decide > 1) {
         fprintf(stderr, "Version %u does not exist.\n", decide);
     }

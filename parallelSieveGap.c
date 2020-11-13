@@ -97,8 +97,11 @@ void parallelSieveGap() {
     for (int i = 0; i < P; i++) {
         if (pid == i) {
             long begin = pid == 0 ? 2 : 0;
-            for (long j = begin; j < size; j++)
-                if (Vec[j]) printf("%ld, ", intervalStart + j * gap); // Translate local vector state to actual primes
+            for (long j = size; j >= begin; --j)
+                if (Vec[j]) {
+                    printf("%ld, ", intervalStart + j * gap); // Translate local vector state to actual primes
+                    break;
+                }
         }
         bsp_sync();
     }
@@ -109,21 +112,27 @@ void parallelSieveGap() {
     vecfreeb(Vec);
 
     // Report running time
-    if (pid == 0) printf("\nTime: %f\n", endTime - startTime);
+    if (pid == 0) printf("\nWith %ld procs Time: %f\n", p, endTime - startTime);
 
     bsp_end();
 }
 
 int main(int argc, char **argv) {
     // Ask for sieve length
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    scanf("%u", &P);
+
+    if (argc > 1) {
+        P = atoi(argv[1]);
+    } else {
+        printf("How many processors do you want to use?\n");
+        fflush(stdout);
+        scanf("%u", &P);
+    }
     if (P == 0 || P > bsp_nprocs()) {
         fprintf(stderr, "Cannot use %u processors.\n", P);
+        return -1;
     }
 
-    printf("nr processes: %d\n", P);
+//    printf("nr processes: %d\n", P);
     bsp_init(&parallelSieveGap, argc, argv);
     parallelSieveGap();
 

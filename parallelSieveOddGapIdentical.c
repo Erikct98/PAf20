@@ -46,15 +46,11 @@ long inverse(long a, long n){
  * Note: this function assumes p > 1.
  */
 long sievePrime(bool *sieve, long start, long gap, long size, long p, long P, long pid) {
-//    printf("=================================\n");
-//    printf("%ld, %ld, %ld, %ld, %ld.\n", pid, p, start, gap, P);
-
     // Determine first entry in sieve
     long primeIdx = getIndex(p); // Global index, not process specific
     long primeSqrIdx = primeIdx * (p + 1); // Global index, not process specific
     long offset = (pid - (primeSqrIdx % P) + P) % P; // Local offset, process specific
     long m_inv = inverse(p, gap); // Global TODO: have this only computed once by finder.
-//    printf("%ld, %ld, %ld, %ld, %ld\n", p, primeIdx, primeSqrIdx, offset, m_inv);
 
     // Sieve primes
     long startIndex = size, stepSize = p / gcd(p, gap);
@@ -65,9 +61,7 @@ long sievePrime(bool *sieve, long start, long gap, long size, long p, long P, lo
     }
     for (int j = startIndex; j < size; j += stepSize) {
         sieve[j] = false;
-//            printf("pid %ld: removing %ld\n", pid, getNumber(j * P + start));
     }
-//    printf("=================================\n");
 }
 
 void parallelSieveGapAndOdd() {
@@ -166,21 +160,22 @@ void parallelSieveGapAndOdd() {
         // TODO: prevent reporting primes multiple times!
     }
 
-    if (pid == 0) endTime = bsp_time();
-
 #ifndef TWINPRIMES
 
     bsp_sync();
+
+    if (pid == 0) endTime = bsp_time();
 
     // Report primes
     for (int i = 0; i < P; i++) {
         if (pid == i) {
 //            printf("\n pid: %ld ---", pid);
             long begin = pid == 0 ? 1 : 0;
-            for (long j = begin; j < sieveSize; j++)
+            for (long j = sieveSize - 1; j >= begin; --j)
 //                printf("%d,", sieve[j]);
                 if (sieve[j]) {
                     printf("%ld, ", getNumber(sieveStart + j * P)); // Convert local index to prime
+                    break;
                 }
         }
         bsp_sync();
@@ -198,16 +193,20 @@ void parallelSieveGapAndOdd() {
 #endif
 
     // Report running time
-    if (pid == 0) printf("\nTime: %f\n", endTime - startTime);
+    if (pid == 0) printf("\nWith %ld procs Time: %f\n", P, endTime - startTime);
 
     bsp_end();
 }
 
 int main(int argc, char **argv) {
     // Ask for sieve length
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    scanf("%u", &P);
+    if (argc > 1) {
+        P = atoi(argv[1]);
+    } else {
+        printf("How many processors do you want to use?\n");
+        fflush(stdout);
+        scanf("%u", &P);
+    }
     if (P == 0 || P > bsp_nprocs()) {
         fprintf(stderr, "Cannot use %u processors.\n", P);
     }

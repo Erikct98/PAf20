@@ -1,6 +1,6 @@
 #include "sieve.h"
 
-#define TWINPRIMES
+//#define TWINPRIMES
 
 static unsigned int P;
 
@@ -151,10 +151,11 @@ void parallelSieveGapAndOdd() {
     for (int i = 0; i < p; i++) {
         if (pid == i) {
             long begin = pid == 0 ? 1 : 0;
-            for (long j = begin; j < vecSize; j++)
+            for (long j = vecSize - 1; j >= begin; --j)
                 if (Vec[j]) {
                     long prime = pid == 0 ? getNumber(j) : getNumber(vecStart + j * (p - 1));
                     printf("%ld, ", prime); // Translate local vector state to actual primes
+                    break;
                 }
         }
         bsp_sync();
@@ -172,16 +173,20 @@ void parallelSieveGapAndOdd() {
 #endif
 
     // Report running time
-    if (pid == 0) printf("\nTime: %f\n", endTime - startTime);
+    if (pid == 0) printf("\nWith %ld procs Time: %f\n", p, endTime - startTime);
 
     bsp_end();
 }
 
 int main(int argc, char **argv) {
     // Ask for sieve length
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    scanf("%u", &P);
+    if (argc > 1) {
+        P = atoi(argv[1]);
+    } else {
+        printf("How many processors do you want to use?\n");
+        fflush(stdout);
+        scanf("%u", &P);
+    }
     if (P == 0 || P > bsp_nprocs()) {
         fprintf(stderr, "Cannot use %u processors.\n", P);
     }

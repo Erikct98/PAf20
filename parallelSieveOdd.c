@@ -1,6 +1,6 @@
 #include "sieve.h"
 
-//#define GOLDBACH_CONJECTURE
+#define GOLDBACH_CONJECTURE
 
 static unsigned int P;
 
@@ -33,9 +33,7 @@ void parallelSieve() {
     long lastValue = 2 * (intervalStart + size - 1) + 1;
     bool *Vec = vecallocb(size);
     bsp_push_reg(Vec, size * sizeof(bool));
-    for (int i = 0; i < size; i++) {
-        Vec[i] = true;
-    }
+    memset(Vec, true, size);
 
     // skip 1
     if (intervalStart == 0) {
@@ -63,7 +61,7 @@ void parallelSieve() {
             }
             // Communicate next prime to other processes
             long actualPrime = primeIndex * 2 + 1;
-            for (int i = 0; i < P; i++) {
+            for (long i = 0; i < P; i++) {
                 bsp_put(i, &actualPrime, &NextPrime, 0, sizeof(long));
             }
         }
@@ -88,12 +86,12 @@ void parallelSieve() {
         }
 
         long startValue = 2 * (intervalStart + startIndex) + 1;
-        if (startValue <= NextPrime) {
-            startValue += 2 * NextPrime;
+        if (2 * startIndex + 1 <= NextPrime) {
+            startIndex += NextPrime;
         }
 
-        for (int j = startValue; j <= lastValue; j += 2 * NextPrime) {
-            Vec[j / 2 - intervalStart] = false;
+        for (long j = startIndex; j < size; j += NextPrime) {
+            Vec[j] = false;
         }
     }
 
@@ -103,13 +101,28 @@ void parallelSieve() {
 #ifndef GOLDBACH_CONJECTURE
 
     // Report primes
-    for (int i = 0; i < P; i++) {
+//    for (long i = 0; i < P; i++) {
+//        if (pid == i) {
+//            if (pid == 0) {
+//                printf("%ld, ", 2l);
+//            }
+//            for (long j = firstValue; j <= lastValue; j+= 2)
+//                if (Vec[j / 2 - intervalStart]) printf("%ld, ", j); // Translate local vector state to actual primes
+//        }
+//        bsp_sync();
+//    }
+
+// Report primes
+    for (long i = 0; i < P; i++) {
         if (pid == i) {
-            if (pid == 0) {
-                printf("%ld, ", 2l);
-            }
-            for (long j = firstValue; j <= lastValue; j+= 2)
-                if (Vec[j / 2 - intervalStart]) printf("%ld, ", j); // Translate local vector state to actual primes
+            long begin = pid == 0 ? 2 : 0;
+//            for (long j = begin; j < size; j++)
+//                if (Vec[j]) printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+            for (long j = lastValue; j >= firstValue; j-= 2)
+                if (Vec[j / 2 - intervalStart]) {
+                    printf("%ld, ", j); // Translate local vector state to actual primes
+                    break;
+                }
         }
         bsp_sync();
     }
@@ -126,7 +139,7 @@ void parallelSieve() {
 
     bsp_sync();
 
-    for (int t = 0; t < p; t++) {
+    for (long t = 0; t < p; t++) {
 //        printf("%ld putting %ld with offset=%ld, size=%ld, 0x%x\n", pid, t, intervalStart, size, allPrimes);
         bsp_put(t, Vec, allPrimes, intervalStart * sizeof(bool), size * sizeof(bool));
     }
@@ -142,7 +155,7 @@ void parallelSieve() {
 
     for (long n = 4 + 2 * (pid); n < S + 1; n += 2 * (p - 1)) {
         bool found = false;
-        for (int i = 0; i < (N + 1) / 2; ++i) {
+        for (long i = 0; i < (N + 1) / 2; ++i) {
             if (allPrimes[i]) {
                 if (allPrimes[(n - (i * 2 + 1)) / 2]) {
 #ifdef OUTPUT_GOLDBACH
@@ -183,21 +196,29 @@ void parallelSieve() {
 #endif
 
     // Report running time
-    if (pid == 0) printf("Time: %f\n", endTime - startTime);
+    if (pid == 0) printf("\nWith %ld procs Time: %f\n", p, S, endTime - startTime);
 
     bsp_end();
 }
 
 int main(int argc, char **argv) {
-    // Ask for sieve length
-//    printf("How many processors do you want to use?\n");
-//    fflush(stdout);
-//    scanf("%u", &P);
-//    if (P == 0 || P > bsp_nprocs()) {
-//        fprintf(stderr, "Cannot use %u processors.\n", P);
-//    }
+    if (argc > 1) {
+        P = atoi(argv[1]);
+    } else {
+        printf("How many processors do you want to use?\n");
+        fflush(stdout);
+        scanf("%u", &P);
+    }
 
-    P = 4;
+    if (P == 0 || P > bsp_nprocs()) {
+        fprintf(stderr, "Cannot use %u processors.\n", P);
+//        return -1;
+    }
+
+    if (argc > 2) {
+        S = atoll(argv[2]);
+//        printf("running to %ld (%s)", S, argv[2]);
+    }
 
     bsp_init(&parallelSieve, argc, argv);
     parallelSieve();

@@ -34,18 +34,14 @@ void parallelSieve() {
     bsp_push_reg(is_prime, size *sizeof(bool));
 
     // Have all processes clean their vector
-    for (int i = 0; i < size; i++) {
-        is_prime[i] = true;
-    }
+    memset(is_prime, true, size);
 
     /** Setup nextPrime field for all processes **/
-    const int nextPrimeSize = 2;
-    long* nextPrimes = vecalloci(nextPrimeSize);
-    bsp_push_reg(nextPrimes, nextPrimeSize * sizeof(long));
-    for (int i = 0; i < nextPrimeSize; i++) {
-        nextPrimes[i] = -1;
-    }
-
+    int nextPrimeSize = 4;
+    const int realNextPrimeSize = 128;
+    long* nextPrimes = vecalloci(realNextPrimeSize);
+    bsp_push_reg(nextPrimes, realNextPrimeSize * sizeof(long));
+    memset(nextPrimes, 0, realNextPrimeSize);
 
     bool running = true;
     int currPrime = 0;
@@ -77,13 +73,14 @@ void parallelSieve() {
                     for (int i = 0; i < P; i++) {
                         bsp_put(i, nextPrimes, nextPrimes, 0, nextPrimeSize * sizeof(long));
                     }
+//                    printf("Just wrote the new primes :)\n");
                 } else {
-                    long startIndex = max((primeIndex - intervalStart % primeIndex) % primeIndex,
-                                          primeIndex * primeIndex - intervalStart);
-                    for (int j = startIndex; j < size; j += primeIndex) {
+//                    printf("Crossing off %ld in 0\n", primeIndex);
+                    for (int j = primeIndex; j < size; j += primeIndex) {
                         is_prime[j] = false;
                     }
                 }
+
             }
             currPrime = 0;
 
@@ -94,17 +91,14 @@ void parallelSieve() {
 
 //        printf("Ya boi %ld got: %ld, ... , %ld\n", pid, nextPrimes[0], nextPrimes[nextPrimeSize - 1]);
 
-        // Quit if we have found all primes
-        if (nextPrimes[0] < 0) {
-            break;
-        }
-
         if (pid == 0 && primeIndex > 0) {
             long startIndex = max((primeIndex - intervalStart % primeIndex) % primeIndex,
                                   primeIndex * primeIndex - intervalStart);
+//            printf("Crossing last: %ld in 0\n", primeIndex);
             for (int j = startIndex; j < size; j += primeIndex) {
                 is_prime[j] = false;
             }
+            memset(nextPrimes, -1, nextPrimeSize);
         } else if (pid != 0) {
             // Remove all multiples of the prime
             for (int i = 0; i < nextPrimeSize; ++i) {
@@ -114,6 +108,10 @@ void parallelSieve() {
                     running = false;
                     break;
                 }
+                if (prime == 0) {
+                    continue;
+                }
+//                printf("Crossing off %ld in %ld\n", prime, pid);
                 long startIndex = max((prime - intervalStart % prime) % prime,
                                       prime * prime - intervalStart);
                 for (int j = startIndex; j < size; j += prime) {
@@ -121,20 +119,24 @@ void parallelSieve() {
                 }
             }
         }
-
+        nextPrimeSize = min(realNextPrimeSize, 8 * nextPrimeSize);
     }
 
     bsp_sync();
 
     /** Print found primes **/
+    // Report primes
     for (int i = 0; i < P; i++) {
         if (pid == i) {
             long begin = pid == 0 ? 2 : 0;
-            for (long j = begin; j < size; j++)
-                if (is_prime[j])
-                    printf("%ld, ",
-                           intervalStart +
-                           j); // Translate local vector state to actual primes
+//            for (long j = begin; j < size; j++)
+//                if (Vec[j]) printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+            for (long j = size - 1; j >= begin; --j) {
+                if (is_prime[j]) {
+                    printf("%ld, ", intervalStart + j); // Translate local vector state to actual primes
+                    break;
+                }
+            }
         }
         bsp_sync();
     }
@@ -148,7 +150,7 @@ void parallelSieve() {
 
     bsp_end();
 
-    printf("\nThat took: %2.5f\n", (endTime - startTime));
+    printf("\nWith %ld procs and %d primes at a time Time: %f\n", p, nextPrimeSize, endTime - startTime);
 
 }
 
@@ -157,16 +159,18 @@ int main(int argc, char **argv) {
 
 //    sequentialSieve(1000 * 1000 * 1000);
 
-    printf("How many processors do you want to use?\n");
-    fflush(stdout);
-    if (!scanf("%u", &P)) {
-        fprintf(stderr, "Cannot read input.\n");
-    }
-    if (P == 0 || P > bsp_nprocs()) {
-        fprintf(stderr, "Cannot use %u processors.\n", P);
-    } else {
-        printf("Can use %u processors\n", P);
-    }
+//    printf("How many processors do you want to use?\n");
+//    fflush(stdout);
+//    if (!scanf("%u", &P)) {
+//        fprintf(stderr, "Cannot read input.\n");
+//    }
+//    if (P == 0 || P > bsp_nprocs()) {
+//        fprintf(stderr, "Cannot use %u processors.\n", P);
+//    } else {
+//        printf("Can use %u processors\n", P);
+//    }
+
+    P = 4;
 
     bsp_init(&parallelSieve, argc, argv);
     parallelSieve();
