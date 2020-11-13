@@ -1,7 +1,9 @@
+#include "chess.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include "chess.h"
+
 static const int N = 8;
 
 void interference(int *board, int idx) {
