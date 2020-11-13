@@ -3,18 +3,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+int N;
 
-static const int N = 8;
-
-void interference(int *board, int idx) {
+bool interference(int *board, int idx) {
     int idxHeight = board[idx];
     for (int i = 0; i < idx; i++){
         int horDiff = idx - i;
         int verDiff = abs(idxHeight - board[i]);
-        if (horrDiff == verDiff) return true;
+        if (horDiff == verDiff) return true;
     }
     return false;
 }
+
+bool recursiveCall(int *board, bool *used, int idx);
 
 bool recursiveCall(int *board, bool *used, int idx) {
     for (int i = 0; i < N; i++) {
@@ -39,17 +40,17 @@ void recursiveSolve() {
     // Setup sieve
     int *board = malloc(N * sizeof(int));
     int *used = malloc(N * sizeof(bool));
-    for (int i = 0; i < N; i++) sieve[i] = -1;
+    for (int i = 0; i < N; i++) board[i] = -1;
 
     // Start recursive call
-    bool foundSolution = recursive(board, 0);
+    bool foundSolution = recursiveCall(board, used, 0);
 
     // End timing
     endTime = clock();
 
     // Print result
     if (!foundSolution) {
-        printf("Failed to find a solution!");
+        printf("Failed to find a solution!\n");
     } else {
         // TODO: print solution.
     }
