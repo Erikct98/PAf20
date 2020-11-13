@@ -1,7 +1,8 @@
+#include "chess.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include "chess.h"
 int N;
 
 void recursiveSolve() {
