@@ -43,8 +43,17 @@ void recursiveSolve() {
 
     // Setup sieve
     int *board = malloc(N * sizeof(int));
+    if (!board) {
+        printf("Malloc failed (board)");
+        return;
+    }
     bool *used = malloc(N * sizeof(bool));
-    for (int i = 0; i < N; i++) board[i] = -1;
+    if (!used) {
+        printf("Malloc failed (board)");
+        return;
+    }
+    memset(board, -1, N * sizeof(int));
+    memset(used, false, N * sizeof(bool));
 
     // Start recursive call
     bool foundSolution = recursiveCall(board, used, 0);
@@ -57,6 +66,9 @@ void recursiveSolve() {
         printf("Failed to find a solution!\n");
     } else {
         printBoard(N, board);
+    }
+    if(validBoard(N, board)) {
+        printf("Board is valid!\n");
     }
 
     free(board);
