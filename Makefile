@@ -4,17 +4,22 @@ LFLAGS = -lm
 
 BASEFILES      = chess.h
 OBJEDUPACK     = edupack/bspedupack.o
-OBJRECURSIVE    = recursive.o
+OBJRECURSIVE   = recursive.o
+OBJPARBASIC    = BasicParallel.o
 
-all: recursive
+all: recursive BasicParallel
 
 recursive.o: $(BASEFILES)
+BasicParallel.o: $(BASEFILES)
 
 recursive: $(OBJRECURSIVE) $(OBJEDUPACK)
 	$(CC) $(CFLAGS) -fsanitize=leak -o recursive $(OBJRECURSIVE) $(OBJEDUPACK) $(LFLAGS)
 
+BasicParallel: $(OBJPARBASIC) $(OBJEDUPACK)
+	$(CC) $(CFLAGS) -fsanitize=leak -o BasicParallel $(OBJPARBASIC) $(OBJEDUPACK) $(LFLAGS)
+
 .PHONY: clean
 
 clean:
-	rm -f $(OBJEDUPACK) $(OBJRECURSIVE) recursive
+	rm -f $(OBJEDUPACK) $(OBJRECURSIVE) $(OBJPARBASIC) recursive BasicParallel
 
