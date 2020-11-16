@@ -67,7 +67,7 @@ void recursiveSolve() {
     } else {
         printBoard(N, board);
     }
-    if(validBoard(N, board)) {
+    if(validBoard(N, board, N < 64)) {
         printf("Board is valid!\n");
     }
 

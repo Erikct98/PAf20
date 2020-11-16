@@ -75,19 +75,17 @@ char* boardToChar(int N, int* board) {
 
 void printBoard(int N, int* board) {
     char* str = boardToChar(N, board);
-    printf("%s\n----\n", str);
     printGrid(N, str);
     free(str);
 }
 
 void fancyPrintBoard(int N, int* board) {
     char* str = boardToChar(N, board);
-    printf("%s\n----\n", str);
     printFancyGrid(N, str);
     free(str);
 }
 
-bool validBoard(int N, int* board, bool printError = true) {
+bool validBoard(int N, int* board, bool printError) {
     // it does not matter whether we treat the board as columns or rows
     int* rowValue = malloc(N * sizeof(int));
     memset(rowValue, -1, N * sizeof(int));
