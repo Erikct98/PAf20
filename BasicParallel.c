@@ -47,8 +47,8 @@ void parallelQueens() {
 
     /** Setup structs **/
     // Local
-    long *board = vecalloci(N);
-    long *remaining = vecalloci(N);
+    int* board = vecallocint(N);
+    int* remaining = vecallocint(N);
 
     /** Determine which problem this pid should tackle **/
     if (P <= N) {

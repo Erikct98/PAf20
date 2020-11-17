@@ -5,6 +5,20 @@
 #include <math.h>
 #include "edupack/bspedupack.h"
 
+int *vecallocint(size_t n){
+    /* This function allocates a vector of long
+       integers of length n */
+    int *pi;
+
+    pi = malloc(MAX(n,1)*sizeof(int));
+    if (pi == NULL) {
+        bsp_abort("vecalloci: not enough memory");
+    }
+
+    return pi;
+}
+
+
 void printGrid(int N, char* chars) {
     for (int i = 0; i < N; i++) {
         printf("%2x ", N - 1 - i);
