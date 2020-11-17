@@ -3,34 +3,31 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 int N;
 
 bool interference(int *board, int idx) {
     int idxHeight = board[idx];
-    for (int i = 0; i < idx; i++){
-        int horDiff = idx - i;
+    int horDiff = idx;
+    for (int i = 0; i < idx; i++) {
         int verDiff = abs(idxHeight - board[i]);
         if (horDiff == verDiff) return true;
+        horDiff--;
     }
     return false;
 }
 
-bool recursiveCall(int *board, bool *used, int idx);
+bool recursiveCall(int *board, int idx, int *remaining, int len);
 
-bool recursiveCall(int *board, bool *used, int idx) {
-    if (idx == N) {
-        return true;
-    }
-
-    for (int i = 0; i < N; i++) {
-        if (!used[i]) {
-            board[idx] = i;
-            used[i] = true;
-            if (!interference(board, idx) && recursiveCall(board, used, idx + 1)) {
-                return true;
-            }
-            used[i] = false;
+bool recursiveCall(int *board, int idx, int *remaining, int len) {
+    if (idx == N) return true;
+    for (int i = 0; i < len; i++) {
+        board[idx] = remaining[i];
+        remaining[i] = remaining[len - 1];
+        if (!interference(board, idx) && recursiveCall(board, idx + 1, remaining, len - 1)) {
+            return true;
         }
+        remaining[i] = board[idx];
     }
     return false;
 }
@@ -47,16 +44,16 @@ void recursiveSolve() {
         printf("Malloc failed (board)");
         return;
     }
-    bool *used = malloc(N * sizeof(bool));
-    if (!used) {
-        printf("Malloc failed (board)");
+    int *remaining = malloc(N * sizeof(int));
+    if (!remaining) {
+        printf("Malloc failed (remaining)");
         return;
     }
     memset(board, -1, N * sizeof(int));
-    memset(used, false, N * sizeof(bool));
+    for (int i = 0; i < N; i++) remaining[i] = i; // TODO: randomization -> randomize this initialization
 
     // Start recursive call
-    bool foundSolution = recursiveCall(board, used, 0);
+    bool foundSolution = recursiveCall(board, 0, remaining, N);
 
     // End timing
     endTime = clock();
@@ -67,12 +64,12 @@ void recursiveSolve() {
     } else {
         printBoard(N, board);
     }
-    if(validBoard(N, board, N < 64)) {
+    if (validBoard(N, board, N < 64)) {
         printf("Board is valid!\n");
     }
 
     free(board);
-    free(used);
+    free(remaining);
 
     // Report running time
     clock_t time_taken = (endTime - startTime);
@@ -80,7 +77,7 @@ void recursiveSolve() {
 }
 
 
-int main(int argc, char ** argv) {
+int main(int argc, char **argv) {
     if (argc > 1) {
         N = atoi(argv[1]);
     } else {
