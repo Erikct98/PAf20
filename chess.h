@@ -18,6 +18,14 @@ int *vecallocint(size_t n){
     return pi;
 }
 
+void vecfreeint(int *pi){
+    /* This function frees a vector of integers */
+
+    if (pi!=NULL)
+        free(pi);
+
+} /* end vecfreeint */
+
 
 void printGrid(int N, char* chars) {
     for (int i = 0; i < N; i++) {

@@ -7,20 +7,20 @@
 static int P;
 static int N;
 
-bool diagonalInterference(long *board, int idx) {
-    long idxHeight = board[idx];
+bool diagonalInterference(int *board, int idx) {
+    int idxHeight = board[idx];
     int horDiff = idx;
     for (int i = 0; i < idx; i++) {
-        long verDiff = abs(idxHeight - board[i]);
+        int verDiff = abs(idxHeight - board[i]);
         if (horDiff == verDiff) return true;
         horDiff--;
     }
     return false;
 }
 
-bool recursiveFindQueens(long *board, int idx, long *remaining, int len);
+bool recursiveFindQueens(int *board, int idx, int *remaining, int len);
 
-bool recursiveFindQueens(long *board, int idx, long *remaining, int len) {
+bool recursiveFindQueens(int *board, int idx, int *remaining, int len) {
     if (idx == N) return true;
     for (int i = 0; i < len; i++) {
         board[idx] = remaining[i];
@@ -50,30 +50,48 @@ void parallelQueens() {
     int* board = vecallocint(N);
     int* remaining = vecallocint(N);
 
-    /** Determine which problem this pid should tackle **/
-    if (P <= N) {
-        for (long i = pid; i < N; i += P) {
-            // Reset remaining
-            for (int j = 0; j < N; j++) remaining[j] = j;
-
-            // Setup case
-            board[0] = remaining[i];
-            remaining[i] = remaining[N - 1];
-            bool found = recursiveFindQueens(board, 1, remaining, N - 1);
-            if (found) {
-                fancyPrintBoard(N, board);
-                break;
-            }
-        }
-    } else {
-        // P > N
+    /** Determine iteration depth **/
+    long depth = 1, cases = N;
+    while (P > cases) {
+        cases *= N - depth;
+        depth++;
     }
+
+    /** Tackle assigned problems **/
+    for (long i = pid; i < cases; i += P) {
+        // Set remaining
+        for (int j = 0; j < N; j++) remaining[j] = j; // TODO: randomization -> use a random permutation
+
+        // Setup starting point for search
+        int caseNr = i, idx;
+        for (int j = 0; j < depth; j++) {
+            idx = caseNr % (N-j);
+            board[j] = remaining[idx];
+            remaining[idx] = remaining[N - 1 - j];
+            caseNr /= (N-j);
+        }
+
+        // Check if starting point is valid
+        bool interference = false;
+        for (int j = 1; j < depth; j++) {
+            interference |= diagonalInterference(board, j);
+        }
+        if (interference) continue;
+
+        // Attempt to find solution
+        bool found = recursiveFindQueens(board, depth, remaining, N - depth);
+        if (found) {
+            fancyPrintBoard(N, board);
+            break;
+        }
+    }
+
     endTime = bsp_time();
 
     printf("pid %ld - runtime %f\n", pid, endTime - startTime);
 
-    vecfreei(board);
-    vecfreei(remaining);
+    vecfreeint(board);
+    vecfreeint(remaining);
     bsp_end();
 }
 
