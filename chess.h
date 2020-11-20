@@ -26,6 +26,42 @@ void vecfreeint(int *pi){
 
 } /* end vecfreeint */
 
+/* Arrange the N elements of ARRAY in random order.
+   Only effective if N is much smaller than RAND_MAX;
+   if this may not be the case, use a better random
+   number generator. FROM: https://stackoverflow.com/questions/6127503/shuffle-array-in-c */
+void shuffle(int *array, size_t n)
+{
+    if (n > 1)
+    {
+        size_t i;
+        for (i = 0; i < n - 1; i++)
+        {
+            size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+            int t = array[j];
+            array[j] = array[i];
+            array[i] = t;
+        }
+    }
+}
+
+void seedRandom() {
+    unsigned long a = clock();
+    unsigned long b = time(NULL);
+    unsigned long c = getpid();
+
+    a=a-b;  a=a-c;  a=a^(c >> 13);
+    b=b-c;  b=b-a;  b=b^(a << 8);
+    c=c-a;  c=c-b;  c=c^(b >> 13);
+    a=a-b;  a=a-c;  a=a^(c >> 12);
+    b=b-c;  b=b-a;  b=b^(a << 16);
+    c=c-a;  c=c-b;  c=c^(b >> 5);
+    a=a-b;  a=a-c;  a=a^(c >> 3);
+    b=b-c;  b=b-a;  b=b^(a << 10);
+    c=c-a;  c=c-b;  c=c^(b >> 15);
+
+    srand(c);
+}
 
 void printGrid(int N, char* chars) {
     for (int i = 0; i < N; i++) {
@@ -84,12 +120,8 @@ char* boardToChar(int N, int* board) {
     }
     memset(chars, nothing_c, N * N * sizeof(char));
     chars[N * N] = '\0';
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
-            if (board[j] == i) {
-                chars[(N - 1 - i) * N + j] = queen_c;
-            }
-        }
+    for (int j = 0; j < N; ++j) {
+        chars[(N - 1 - board[j]) * N + j] = queen_c;
     }
 
     return chars;

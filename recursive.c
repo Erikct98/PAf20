@@ -77,7 +77,8 @@ void recursiveSolve() {
 }
 
 
-int main(int argc, char **argv) {
+int main(int argc, char ** argv) {
+    seedRandom();
     if (argc > 1) {
         N = atoi(argv[1]);
     } else {
