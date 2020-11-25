@@ -6,6 +6,10 @@
 
 static int P;
 static int N;
+static int CHECK_THRESHOLD = 20000000;
+
+static int FOUND = -1;
+static int STOPPING = -2;
 
 void swap(int *one, int *two) {
     int temp = *one;
@@ -21,12 +25,21 @@ int getBwdDiagIdx(int *board, int idx) {
     return board[idx] + idx;
 }
 
-bool recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag);
+int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *done);
 
-bool recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag) {
-    if (idx == N) return true;
+int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *done) {
+    if (idx == N) {
+#ifdef  FINDALL
+        // TODO
+#else
+        // Set done flags
+        bool ans = true;
+        for (int i = 0; i < P; i++) bsp_put(i, &ans, done, 0, sizeof(bool));
+        return FOUND;
+#endif
+    }
 
-    int fwdDiagIdx, bwdDiagIdx;
+    int fwdDiagIdx, bwdDiagIdx, count = 0;
     for (int i = idx; i < N; i++) {
         swap(&board[idx], &board[i]);
         fwdDiagIdx = getFwdDiagIdx(board, idx);
@@ -34,15 +47,25 @@ bool recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag) {
         if (!fwdDiag[fwdDiagIdx] && !bwdDiag[bwdDiagIdx]) {
             fwdDiag[fwdDiagIdx] = true;
             bwdDiag[bwdDiagIdx] = true;
-            if (recursiveFindQueens(board, idx + 1, fwdDiag, bwdDiag)) {
-                return true;
+
+#ifdef FINDALL
+            // TODO
+#else
+            int val = recursiveFindQueens(board, idx + 1, fwdDiag, bwdDiag, done);
+            if (val < 0) return val;
+            count += val;
+            if (count > CHECK_THRESHOLD) {
+                bsp_sync();
+                if (*done) return STOPPING;
+                count = 0; // Reset count; we are synchronizing
             }
+#endif
             fwdDiag[fwdDiagIdx] = false;
             bwdDiag[bwdDiagIdx] = false;
         }
         swap(&board[idx], &board[i]);
     }
-    return false;
+    return count;
 }
 
 
@@ -61,6 +84,13 @@ void parallelQueens() {
     int *board = vecallocint(N);
     int *fwdDiag = vecallocint(2 * N - 1);
     int *bwdDiag = vecallocint(2 * N - 1);
+
+#ifndef FINDALL
+    // Shared
+    bool done = false;
+    bsp_push_reg(&done, sizeof(bool));
+    bsp_sync();
+#endif
 
     /** Determine iteration depth **/
     long depth = 0, cases = 1;
@@ -92,17 +122,26 @@ void parallelQueens() {
         }
         if (j != depth) continue; // Next case if diagonal clash
 
+#ifdef FINDALL
+        // TODO
+#else
         // Search for solution
-        bool found = recursiveFindQueens(board, depth, fwdDiag, bwdDiag);
-        if (found && validBoard(N, board, true)) {
+        int val = recursiveFindQueens(board, depth, fwdDiag, bwdDiag, &done);
+        if (val == FOUND && validBoard(N, board, true)) {
             fancyPrintBoard(N, board);
-            break;
+            bsp_sync();
         }
+        if (val < 0) break; // Either FOUND or STOPPING
+#endif
     }
 
     endTime = bsp_time();
 
     printf("pid %ld - runtime %f\n", pid, endTime - startTime);
+
+#ifndef FINDALL
+    bsp_pop_reg(&done);
+#endif
 
     vecfreeint(board);
     vecfreeint(fwdDiag);
