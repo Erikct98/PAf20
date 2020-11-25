@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
+#include <unistd.h>
 #include "edupack/bspedupack.h"
 
 int *vecallocint(size_t n){
@@ -45,7 +47,7 @@ void shuffle(int *array, size_t n)
     }
 }
 
-void seedRandom() {
+unsigned long seedRandom() {
     unsigned long a = clock();
     unsigned long b = time(NULL);
     unsigned long c = getpid();
@@ -61,6 +63,8 @@ void seedRandom() {
     c=c-a;  c=c-b;  c=c^(b >> 15);
 
     srand(c);
+
+    return c;
 }
 
 void printGrid(int N, char* chars) {
@@ -238,7 +242,7 @@ bool validBoard(int N, int* board, bool printError) {
 
     free(error);
     free(rowValue);
-    return failed;
+    return !failed;
 }
 
 #endif //PAF20_CHESS_H
