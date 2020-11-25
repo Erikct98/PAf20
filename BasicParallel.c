@@ -7,29 +7,40 @@
 static int P;
 static int N;
 
-bool diagonalInterference(int *board, int idx) {
-    int idxHeight = board[idx];
-    int horDiff = idx;
-    for (int i = 0; i < idx; i++) {
-        int verDiff = abs(idxHeight - board[i]);
-        if (horDiff == verDiff) return true;
-        horDiff--;
-    }
-    return false;
+void swap(int *one, int *two) {
+    int temp = *one;
+    *one = *two;
+    *two = temp;
 }
 
-bool recursiveFindQueens(int *board, int idx, int *remaining, int len);
+int getFwdDiagIdx(int *board, int idx) {
+    return board[idx] + N - 1 - idx;
+}
 
-bool recursiveFindQueens(int *board, int idx, int *remaining, int len) {
+int getBwdDiagIdx(int *board, int idx) {
+    return board[idx] + idx;
+}
+
+bool recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag);
+
+bool recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag) {
     if (idx == N) return true;
-    for (int i = 0; i < len; i++) {
-        board[idx] = remaining[i];
-        remaining[i] = remaining[len - 1];
-        if (!diagonalInterference(board, idx) && recursiveFindQueens(board, idx + 1, remaining, len - 1)) {
-            return true;
+
+    int fwdDiagIdx, bwdDiagIdx;
+    for (int i = idx; i < N; i++) {
+        swap(&board[idx], &board[i]);
+        fwdDiagIdx = getFwdDiagIdx(board, idx);
+        bwdDiagIdx = getBwdDiagIdx(board, idx);
+        if (!fwdDiag[fwdDiagIdx] && !bwdDiag[bwdDiagIdx]) {
+            fwdDiag[fwdDiagIdx] = true;
+            bwdDiag[bwdDiagIdx] = true;
+            if (recursiveFindQueens(board, idx + 1, fwdDiag, bwdDiag)) {
+                return true;
+            }
+            fwdDiag[fwdDiagIdx] = false;
+            bwdDiag[bwdDiagIdx] = false;
         }
-        remaining[len - 1] = remaining[i];
-        remaining[i] = board[idx];
+        swap(&board[idx], &board[i]);
     }
     return false;
 }
@@ -47,40 +58,43 @@ void parallelQueens() {
 
     /** Setup structs **/
     // Local
-    int* board = vecallocint(N);
-    int* remaining = vecallocint(N);
+    int *board = vecallocint(N);
+    int *fwdDiag = vecallocint(2 * N - 1);
+    int *bwdDiag = vecallocint(2 * N - 1);
 
     /** Determine iteration depth **/
-    long depth = 1, cases = N;
+    long depth = 0, cases = 1;
     while (P > cases) {
         cases *= N - depth;
         depth++;
     }
 
     /** Tackle assigned problems **/
-    for (long i = pid; i < cases; i += P) {
-        // Set remaining
-        for (int j = 0; j < N; j++) remaining[j] = j; // TODO: randomization -> use a random permutation
+    for (long caseNr = pid; caseNr < cases; caseNr += P) {
+        // Set start values
+        for (int j = 0; j < N; j++) board[j] = j; // TODO: randomization -> use a random permutation
+        memset(fwdDiag, false, 2 * N - 1);
+        memset(bwdDiag, false, 2 * N - 1);
 
         // Setup starting point for search
-        int caseNr = i, idx;
-        for (int j = 0; j < depth; j++) {
-            idx = caseNr % (N-j);
-            board[j] = remaining[idx];
-            remaining[idx] = remaining[N - 1 - j];
-            caseNr /= (N-j);
+        int i = caseNr, j, idx;
+        int fwdDiagIdx, bwdDiagIdx;
+        for (j = 0; j < depth; j++) {
+            idx = i % (N - j);
+            i /= (N - j);
+            swap(&board[j], &board[j + idx]);
+            fwdDiagIdx = getFwdDiagIdx(board, j);
+            bwdDiagIdx = getBwdDiagIdx(board, j);
+            if (!fwdDiag[fwdDiagIdx] && !bwdDiag[bwdDiagIdx]) {
+                fwdDiag[fwdDiagIdx] = true;
+                bwdDiag[bwdDiagIdx] = true;
+            } else break;
         }
+        if (j != depth) continue; // Next case if diagonal clash
 
-        // Check if starting point is valid
-        bool interference = false;
-        for (int j = 1; j < depth; j++) {
-            interference |= diagonalInterference(board, j);
-        }
-        if (interference) continue;
-
-        // Attempt to find solution
-        bool found = recursiveFindQueens(board, depth, remaining, N - depth);
-        if (found) {
+        // Search for solution
+        bool found = recursiveFindQueens(board, depth, fwdDiag, bwdDiag);
+        if (found && validBoard(N, board, true)) {
             fancyPrintBoard(N, board);
             break;
         }
@@ -91,7 +105,9 @@ void parallelQueens() {
     printf("pid %ld - runtime %f\n", pid, endTime - startTime);
 
     vecfreeint(board);
-    vecfreeint(remaining);
+    vecfreeint(fwdDiag);
+    vecfreeint(bwdDiag);
+
     bsp_end();
 }
 
