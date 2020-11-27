@@ -1,12 +1,14 @@
 #ifndef PAF20_PARALLELALGORITHMS_DIAGONALBITSET_H
 #define PAF20_PARALLELALGORITHMS_DIAGONALBITSET_H
 
+#include <vector>
+#include <stdint.h>
+
 using BitList = std::vector<char>;
 
 class DiagonalBitSet {
 private:
 
-    char& getRef(uint32_t index, uint32_t val);
     char& getRefUp(uint32_t index, uint32_t val);
     char& getRefDown(uint32_t index, uint32_t val);
 

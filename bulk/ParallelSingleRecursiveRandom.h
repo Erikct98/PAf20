@@ -5,6 +5,7 @@
 #include <deque>
 #include <iostream>
 #include "chess.h"
+#include <stdint.h>
 
 class ParallelSingleRecursiveRandom {
 private:
