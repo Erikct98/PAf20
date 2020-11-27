@@ -7,6 +7,7 @@
 static int P;
 static int N;
 static int CHECK_THRESHOLD = 20000000;
+static unsigned long SEED;
 
 static int FOUND = -1;
 static int STOPPING = -2;
@@ -29,14 +30,10 @@ int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *d
 
 int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *done) {
     if (idx == N) {
-#ifdef  FINDALL
-        // TODO
-#else
         // Set done flags
         bool ans = true;
         for (int i = 0; i < P; i++) bsp_put(i, &ans, done, 0, sizeof(bool));
         return FOUND;
-#endif
     }
 
     int fwdDiagIdx, bwdDiagIdx, count = 0;
@@ -47,10 +44,6 @@ int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *d
         if (!fwdDiag[fwdDiagIdx] && !bwdDiag[bwdDiagIdx]) {
             fwdDiag[fwdDiagIdx] = true;
             bwdDiag[bwdDiagIdx] = true;
-
-#ifdef FINDALL
-            // TODO
-#else
             int val = recursiveFindQueens(board, idx + 1, fwdDiag, bwdDiag, done);
             if (val < 0) return val;
             count += val;
@@ -59,9 +52,9 @@ int recursiveFindQueens(int *board, int idx, int *fwdDiag, int *bwdDiag, bool *d
                 if (*done) return STOPPING;
                 count = 0; // Reset count; we are synchronizing
             }
-#endif
             fwdDiag[fwdDiagIdx] = false;
             bwdDiag[bwdDiagIdx] = false;
+            count ++;
         }
         swap(&board[idx], &board[i]);
     }
@@ -85,12 +78,10 @@ void parallelQueens() {
     int *fwdDiag = vecallocint(2 * N - 1);
     int *bwdDiag = vecallocint(2 * N - 1);
 
-#ifndef FINDALL
     // Shared
     bool done = false;
     bsp_push_reg(&done, sizeof(bool));
     bsp_sync();
-#endif
 
     /** Determine iteration depth **/
     long depth = 0, cases = 1;
@@ -102,9 +93,11 @@ void parallelQueens() {
     /** Tackle assigned problems **/
     for (long caseNr = pid; caseNr < cases; caseNr += P) {
         // Set start values
-        for (int j = 0; j < N; j++) board[j] = j; // TODO: randomization -> use a random permutation
-        memset(fwdDiag, false, 2 * N - 1);
-        memset(bwdDiag, false, 2 * N - 1);
+        for (int j = 0; j < N; j++) board[j] = j;
+        srand(SEED);
+        shuffle(board, N);
+        memset(fwdDiag, false, (2 * N - 1) * sizeof(bool));
+        memset(bwdDiag, false, (2 * N - 1) * sizeof(bool));
 
         // Setup starting point for search
         int i = caseNr, j, idx;
@@ -122,27 +115,20 @@ void parallelQueens() {
         }
         if (j != depth) continue; // Next case if diagonal clash
 
-#ifdef FINDALL
-        // TODO
-#else
         // Search for solution
         int val = recursiveFindQueens(board, depth, fwdDiag, bwdDiag, &done);
         if (val == FOUND && validBoard(N, board, true)) {
-            fancyPrintBoard(N, board);
+            printBoard(N, board);
             bsp_sync();
         }
         if (val < 0) break; // Either FOUND or STOPPING
-#endif
     }
 
     endTime = bsp_time();
 
     printf("pid %ld - runtime %f\n", pid, endTime - startTime);
 
-#ifndef FINDALL
     bsp_pop_reg(&done);
-#endif
-
     vecfreeint(board);
     vecfreeint(fwdDiag);
     vecfreeint(bwdDiag);
@@ -170,6 +156,7 @@ int main(int argc, char **argv) {
     }
 
     bsp_init(&parallelQueens, argc, argv);
+    SEED = seedRandom();
     parallelQueens();
 
     return EXIT_SUCCESS;

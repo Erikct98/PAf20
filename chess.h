@@ -6,6 +6,7 @@
 #include <time.h>
 #include <unistd.h>
 #include "edupack/bspedupack.h"
+#include <time.h>
 
 int *vecallocint(size_t n){
     /* This function allocates a vector of long
