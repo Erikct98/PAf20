@@ -15,6 +15,7 @@ private:
 
 public:
     void solve();
+    ParallelSingleRecursiveRandom(int N, int P) : N(N), P(P) {};
 };
 
 #endif //PAF20_PARALLELALGORITHMS_PARALLELSINGLERECURSIVERANDOM_H

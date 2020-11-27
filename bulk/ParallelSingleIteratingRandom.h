@@ -14,10 +14,11 @@ private:
     uint32_t N;
     uint32_t P;
 
-    std::optional<Board> findSolution();
+    std::optional<Board> findSolution(const Board& partial, RemainingList remaining);
 
 public:
     void solve();
+    ParallelSingleIteratingRandom(int N, int P) : N(N), P(P) {};
 };
 
 

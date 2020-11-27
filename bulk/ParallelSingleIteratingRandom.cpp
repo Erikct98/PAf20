@@ -1,8 +1,8 @@
 #include "ParallelSingleIteratingRandom.h"
 
 class ParallelSingleIteratingRandom {
-public:
-    std::optional<Board> findSolution(const Board& partial, RemainingList remaining) {
+private:
+    ParallelSingleIteratingRandom::findSolution(const Board& partial, RemainingList remaining) {
         DiagonalBitSet diag {N};
         const uint32_t upto = partial.size();
 
@@ -53,7 +53,8 @@ public:
         return board;
     }
 
-    void solve() {
+public:
+    ParallelSingleIteratingRandom::solve() {
         bulk::thread::environment env;
         env.spawn(P, [](bulk::world& world) {
             auto s = world.rank();

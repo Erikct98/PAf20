@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    ParallelSingleIteratingRandom psir {N, P};
+    ParallelSingleIteratingRandom psir(N, P);
     psir.solve();
 
     return 0;

@@ -10,7 +10,7 @@
 
 class ParallelSingleRecursiveRandom {
 private:
-    uint32_t findSolution(bulk::world &world, const Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
+    ParallelSingleRecursiveRandom::findSolution(bulk::world &world, const Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
         if (idx == N) {
             auto p = world.active_processors();
             for (int j = 0; j < p; j++) bulk::put((world.rank() + j) % p, true, *done);
@@ -38,7 +38,7 @@ private:
     }
 
 public:
-    std::optional<Board> solve() {
+    ParallelSingleRecursiveRandom::solve() {
         bulk::thread::environment env;
         env.spawn(P, [](bulk::world &world) {
             auto s = world.rank();
