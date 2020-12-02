@@ -7,8 +7,8 @@
 
 
 const static uint32_t FOUND = -1;
-const static uint32_t STOPPING = -1;
-const static uint32_t SYNC_THRESHOLD = -1;
+const static uint32_t STOPPING = -2;
+const static uint32_t SYNC_THRESHOLD = 2000000;
 
 
 uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, const Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
