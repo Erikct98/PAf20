@@ -65,7 +65,7 @@ void ParallelSingleRecursiveRandom::solve() {
             for (auto v : board) {
                 std::cout << v << ", ";
             }
-            std::cout << ')\n';
+            std::cout << ")\n";
             std::cout << "By " << s << " / " << p << '\n';
         }
     });

@@ -29,25 +29,25 @@ std::optional<Board> ParallelSingleIteratingRandom::findSolution(const Board &pa
     picks.reserve(remaining.size());
 
     uint32_t currIdx = upto;
-    uint32_t remainingIdx;
+    uint32_t searchIdx;
     while (currIdx < N) {
-        remainingIdx = currIdx;
-        while (remainingIdx < N && diag.hasInterference(currIdx, board[remainingIdx])) {
-            ++remainingIdx;
+        searchIdx = currIdx;
+        while (searchIdx < N && diag.hasInterference(currIdx, board[searchIdx])) {
+            ++searchIdx;
         }
-        if (remainingIdx >= N) {
+        if (searchIdx >= N) {
             currIdx--;
             if (currIdx < upto) {
                 return {};
             }
-            remainingIdx = picks.back();
+            searchIdx = picks.back();
             picks.pop_back();
             diag.reset(currIdx, board[currIdx]);
-            swap(&board[currIdx], &board[remainingIdx]);
+            std::swap(board[currIdx], board[searchIdx]);
         } else {
-            swap(&board[currIdx], &board[remainingIdx]);
+            std::swap(board[currIdx], board[searchIdx]);
             diag.set(currIdx, board[currIdx]);
-            picks.push_back(remainingIdx);
+            picks.push_back(searchIdx);
             currIdx++;
         }
     }
