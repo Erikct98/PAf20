@@ -29,9 +29,8 @@ std::optional<Board> ParallelSingleIteratingRandom::findSolution(const Board &pa
     picks.reserve(remaining.size());
 
     uint32_t currIdx = upto;
-    uint32_t searchIdx;
+    uint32_t searchIdx = currIdx;
     while (currIdx < N) {
-        searchIdx = currIdx;
         while (searchIdx < N && diag.hasInterference(currIdx, board[searchIdx])) {
             ++searchIdx;
         }
@@ -44,11 +43,13 @@ std::optional<Board> ParallelSingleIteratingRandom::findSolution(const Board &pa
             picks.pop_back();
             diag.reset(currIdx, board[currIdx]);
             std::swap(board[currIdx], board[searchIdx]);
+            searchIdx++;
         } else {
             std::swap(board[currIdx], board[searchIdx]);
             diag.set(currIdx, board[currIdx]);
             picks.push_back(searchIdx);
             currIdx++;
+            searchIdx = currIdx;
         }
     }
 
