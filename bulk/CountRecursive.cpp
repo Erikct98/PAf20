@@ -22,23 +22,58 @@ uint32_t CountRecursive::countSolutions(Board &board, uint32_t idx, DiagonalBitS
     return count;
 }
 
-
-
 void CountRecursive::solve() {
     bulk::thread::environment env;
     env.spawn(procs, [&](bulk::world &world) {
         auto s = world.rank();
         auto p = world.active_processors();
 
-        // Initialize board
+        // Compute number of cases
+        uint32_t depth = 0, cases = 1;
+        while (p * p > cases) {
+            cases *= N - depth;
+            depth++;
+        }
+
+        // Count correct boards in all cases
         Board board(N, 0);
-        for (uint32_t j = 0; j < N; j++) board[j] = j;
 
-        // Initialize diagonal
-        DiagonalBitSet diag{N};
+        uint32_t count = 0;
+        for (uint32_t caseNr = s; caseNr < cases; caseNr += p) {
+            // Initialize board
+            for (uint32_t j = 0; j < N; j++) board[j] = j;
 
-        // Find solution
-        auto res = countSolutions(board, 0, diag);
-        std::cout << "Proc " << s << " Found " << res << " solutions!\n";
+            // Initialize diagonal
+            DiagonalBitSet diag{N};
+
+            // Setup case
+            uint32_t i = caseNr, j, idx;
+            for (j = 0; j < depth; j++) {
+                idx = i % (N - j);
+                i /= (N - j);
+                if (diag.hasInterference(j, board[j + idx])) break;
+                diag.set(j, board[j + idx]);
+                std::swap(board[j], board[j + idx]);
+            }
+            if (j != depth) continue; // Diagonal clash -> go to next case
+
+            // Count number of solutions
+            count += countSolutions(board, depth, diag);
+        }
+
+        // Combine all counts
+        auto countExchange = bulk::coarray<uint32_t>(world, p);
+        for (uint32_t k = 0; k < p; k++) {
+            countExchange(k)[s] = count;
+        }
+        world.sync();
+        uint32_t totalCount = 0;
+        for (auto c : countExchange) {
+            totalCount += c;
+        }
+
+        if (s == 0) {
+            std::cout << "In total " << totalCount << " solutions were found.\n";
+        }
     });
 }
