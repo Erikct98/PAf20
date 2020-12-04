@@ -17,5 +17,10 @@ if (NOT bulk_POPULATED)
     add_subdirectory(${bulk_SOURCE_DIR} ${bulk_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif ()
 
-add_executable(BulkParallel main.cpp DiagonalBitSet.cpp ParallelSingleIteratingRandom.cpp ParallelSingleRecursiveRandom.cpp)
+add_executable(BulkParallel main.cpp
+        DiagonalBitSet.cpp
+        ParallelSingleIteratingRandom.cpp
+        ParallelSingleRecursiveRandom.cpp
+        CountRecursive.cpp)
+
 target_link_libraries(BulkParallel bulk_thread)

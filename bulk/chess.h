@@ -2,6 +2,9 @@
 #define PAF20_PARALLELALGORITHMS_CHESS_H
 
 #include <utility>
+#include <vector>
+#include <inttypes.h>
+#include <random>
 
 using Board = std::vector<uint32_t>;
 

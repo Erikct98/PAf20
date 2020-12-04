@@ -1,4 +1,6 @@
-#include "ParallelSingleIteratingRandom.h"
+#include "CountRecursive.h"
+#include "ParallelSingleRecursiveRandom.h"
+#include <iostream>
 
 int main(int argc, char** argv) {
     uint32_t N = 0, P = 0;
@@ -9,19 +11,21 @@ int main(int argc, char** argv) {
     } else {
         printf("What size chessboard do we use?\n");
         fflush(stdout);
-        if (scanf("%ul", &N) != 1) {
+        std::cin >> N;
+        if (!std::cin) {
             printf("Invalid size!");
             return EXIT_FAILURE;
         }
         printf("How many processors are we using?\n");
         fflush(stdout);
-        if (scanf("%ul", &P) != 1) { // FIXME: this is unsafe.
+        std::cin >> P;
+        if (!std::cin) {
             printf("Invalid size!");
             return EXIT_FAILURE;
         }
     }
 
-    ParallelSingleIteratingRandom psir(N, P);
+  CountRecursive psir(N, P);
     psir.solve();
 
     return 0;
