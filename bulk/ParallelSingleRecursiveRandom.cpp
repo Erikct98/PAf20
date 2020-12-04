@@ -11,7 +11,7 @@ const static uint32_t STOPPING = -2;
 const static uint32_t SYNC_THRESHOLD = 2000000;
 
 
-uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, const Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
+uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
     if (idx == N) {
         auto p = world.active_processors();
         for (int j = 0; j < p; j++) bulk::put((world.rank() + j) % p, true, *done);
@@ -23,9 +23,11 @@ uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, const B
         count++;
         if (!diag.hasInterference(idx, board[i])) {
             diag.set(idx, board[i]);
+            std::swap(board[idx], board[i]);
             uint32_t res = findSolution(world, board, idx + 1, diag, done);
             if (res == FOUND || res == STOPPING) return res;
             count += res;
+          std::swap(board[idx], board[i]);
             diag.reset(idx, board[i]);
         }
 
@@ -46,7 +48,7 @@ void ParallelSingleRecursiveRandom::solve() {
         auto p = world.active_processors();
 
         // Initialize board
-        Board board{N};
+        Board board(N, 0);
         for (uint32_t j = 0; j < N; j++) board[j] = j;
         // TODO: shuffle
 
@@ -62,7 +64,7 @@ void ParallelSingleRecursiveRandom::solve() {
         auto res = findSolution(world, board, 0, diag, &done);
         if (res == FOUND) {
             std::cout << "(";
-            for (auto v : board) {
+            for (uint32_t v : board) {
                 std::cout << v << ", ";
             }
             std::cout << ")\n";

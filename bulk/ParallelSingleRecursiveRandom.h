@@ -12,7 +12,7 @@ private:
     uint32_t N;
     uint32_t P;
 
-    uint32_t findSolution(bulk::world &world, const Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done);
+    uint32_t findSolution(bulk::world &world, Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done);
 
 public:
     void solve();
