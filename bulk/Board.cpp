@@ -1,4 +1,6 @@
 #include "Board.h"
+#include <bitset>
+#include <iostream>
 
 void Board::push(uint64_t elt) {
     // Update horizontal and diagonals
@@ -48,17 +50,10 @@ uint64_t Board::pop() {
 uint64_t Board::getNextElt() {
     uint64_t mask = masks.back();
 
-    // Get elt at LSB
-    // TODO: make faster / without loop
-    uint64_t elt = 1u;
-    while ((elt & mask) == 0 && elt > 0) {
-        elt <<= 1u;
-    }
+    uint64_t elt = mask & -mask;
 
     // Update mask
-    masks.pop_back();
-    uint64_t newMask = mask & ~elt & defMask;
-    masks.push_back(newMask);
+    masks.back() &= ~elt & defMask;
 
     // Return element
     return elt;
@@ -73,7 +68,9 @@ void Board::reset() {
     diagDown = 0;
     diagUp = 0;
     horizontal = 0;
-    formation.erase(formation.begin(), formation.end());
+    formation.clear();
+    masks.clear();
+    masks.push_back(defMask);
 }
 
 uint64_t Board::getIdx() const {

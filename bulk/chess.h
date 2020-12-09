@@ -6,8 +6,6 @@
 #include <inttypes.h>
 #include <random>
 
-using Board = std::vector<uint32_t>;
-
 inline void shuffle(std::vector<uint32_t> array) {
     size_t n = array.size();
     if (n > 1) {

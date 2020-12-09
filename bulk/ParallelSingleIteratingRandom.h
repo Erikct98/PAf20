@@ -14,7 +14,7 @@ private:
     uint32_t N;
     uint32_t P;
 
-    std::optional<Board> findSolution(const Board& partial, RemainingList remaining);
+    std::optional<std::vector<uint32_t>> findSolution(const std::vector<uint32_t>& partial, RemainingList remaining);
 
 public:
     void solve();

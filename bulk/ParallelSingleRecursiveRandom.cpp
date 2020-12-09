@@ -10,6 +10,7 @@ const static uint32_t FOUND = -1;
 const static uint32_t STOPPING = -2;
 const static uint32_t SYNC_THRESHOLD = 2000000;
 
+using Board = std::vector<uint32_t>;
 
 uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, Board &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done) {
     if (idx == N) {

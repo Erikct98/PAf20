@@ -1,6 +1,8 @@
 #include "ParallelSingleIteratingRandom.h"
 #include "DiagonalBitSet.h"
 
+using Board = std::vector<uint32_t>;
+
 std::optional<Board> ParallelSingleIteratingRandom::findSolution(const Board &partial, RemainingList remaining) {
     // Check sizes
     const uint32_t upto = partial.size();

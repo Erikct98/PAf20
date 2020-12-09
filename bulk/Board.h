@@ -2,6 +2,7 @@
 #define PAF20_PARALLELALGORITHMS_BOARD_H
 
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 
@@ -20,10 +21,10 @@ public:
         idx(0),
         diagUp(0),
         diagDown(0),
-        horizontal(0),
-        formation(size, 0),
-        masks(size, 0){
-        masks.push_back(defMask);
+        horizontal(0){
+      formation.reserve(size);
+      masks.reserve(size);
+      masks.push_back(defMask);
     }
 
     void push(uint64_t elt);
