@@ -6,7 +6,7 @@ using RemainingList = std::vector<uint32_t>;
 
 class CountIterating {
 public:
-    void solve();
+    uint64_t solve();
 
     CountIterating(uint32_t n, uint32_t procs);
 

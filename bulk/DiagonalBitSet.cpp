@@ -21,3 +21,12 @@ void DiagonalBitSet::reset(uint32_t index, uint32_t val) {
     getRefUp(index, val) = false;
     getRefDown(index, val) = false;
 }
+
+void DiagonalBitSet::resetAll() {
+  for (auto& ref : m_listUp) {
+    ref = false;
+  }
+  for (auto& ref : m_listDown) {
+    ref = false;
+  }
+}

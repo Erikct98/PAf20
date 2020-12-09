@@ -26,6 +26,7 @@ public:
     bool hasInterference(uint32_t index, uint32_t val);
     void set(uint32_t index, uint32_t val);
     void reset(uint32_t index, uint32_t val);
+    void resetAll();
 };
 
 
