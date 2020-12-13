@@ -20,9 +20,14 @@ endif ()
 add_executable(BulkParallel main.cpp
         DiagonalBitSet.cpp
         Board.cpp
-        ParallelSingleIteratingRandom.cpp
-        ParallelSingleRecursiveRandom.cpp
         CountRecursive.cpp
         CountIterating.cpp)
 
+add_executable(BulkParallelSingle single.cpp
+        DiagonalBitSet.cpp
+        Board.cpp
+        ParallelSingleIteratingRandom.cpp
+        ParallelSingleRecursiveRandom.cpp)
+
 target_link_libraries(BulkParallel bulk_thread)
+target_link_libraries(BulkParallelSingle bulk_thread)

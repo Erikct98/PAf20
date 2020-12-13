@@ -4,8 +4,9 @@
 #include <bulk/backends/thread/environment.hpp>
 #include <deque>
 #include <iostream>
+#include <cstdint>
 #include "chess.h"
-#include <stdint.h>
+#include "DiagonalBitSet.h"
 
 class ParallelSingleRecursiveRandom {
 private:
