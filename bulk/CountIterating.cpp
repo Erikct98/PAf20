@@ -24,9 +24,7 @@ uint32_t CountIterating::countSolutions(Board &board) const {
     return count;
 }
 
-//#define REFLECT_SIMPLE
 //#define TIME_INDIVIDUAL
-//#define PRIME_LOAD_BALANCE
 
 #ifdef TIME_INDIVIDUAL
 #define WHEN_TIMING(x) x
@@ -46,43 +44,23 @@ uint64_t CountIterating::solve() {
 
         // Compute number of cases
         uint32_t depth = 1;
-#ifdef REFLECT_SIMPLE
         uint32_t cases = (N + 1) / 2;
-#else
-        uint32_t cases = N;
-#endif
-      while (p * p > cases && depth < N) {
-          cases *= N - depth;
-          depth++;
-      }
+        while (p * p > cases && depth < N) {
+            cases *= N - depth;
+            depth++;
+        }
 
-      // Init board
+        // Init board
         Board board{N};
         std::vector<uint64_t> placeHolder(N);
-#ifdef REFLECT_SIMPLE
         bool isOdd = N % 2 == 1;
         uint32_t halfWay = (N + 1) / 2;
-#endif
 
         // Count all solutions
         auto count = bulk::var<uint64_t>(world, 0u);
-        auto perCount = bulk::coarray<uint64_t>(world, N);
-        for (auto& c : perCount) {
-            c = 0;
-        }
-        uint32_t ranCases = 0;
+        auto perCount = bulk::coarray<uint64_t>(world, N, 0lu);
 
-#ifdef PRIME_LOAD_BALANCE
-        const int prime = 73;
-
-        uint32_t casesToRun = (((cases % p) > s) ? 1u : 0u) + cases / p;
-        uint32_t casesBeforeMe = (cases % p == 0 ? 0 : std::min(s, cases % p)) + (cases / p) * s;
-        for (uint32_t caseNr = ((casesBeforeMe) * prime) % cases; ranCases < casesToRun; caseNr = (caseNr + prime) % cases) {
-            ++ranCases;
-#else
         for (uint32_t caseNr = s; caseNr < cases; caseNr += p) {
-#endif
-            // Reset board
             board.reset();
 
             // Create placeholder
@@ -91,17 +69,13 @@ uint64_t CountIterating::solve() {
             // Setup case
             uint32_t i = caseNr, j, idx;
             for (j = 0; j < depth; j++) {
-#ifdef REFLECT_SIMPLE
                 if (j == 0) {
                     idx = i % halfWay;
                     i /= halfWay;
                 } else {
-#endif
                     idx = i % (N - j);
                     i /= (N - j);
-#ifdef REFLECT_SIMPLE
                 }
-#endif
                 uint64_t available = board.getAvailable();
                 if ((available & (1u << placeHolder[j + idx])) == 0) break;
                 board.push(1u << placeHolder[j + idx]);
@@ -111,19 +85,13 @@ uint64_t CountIterating::solve() {
 
             // Count number of solutions
             uint64_t solutions = countSolutions(board);
-#ifdef REFLECT_SIMPLE
             if (isOdd && caseNr % halfWay == halfWay - 1) {
                 perCount[i % halfWay] += count;
-#else
-                perCount[caseNr % N] += solutions;
-#endif
-#ifdef REFLECT_SIMPLE
             } else {
                 perCount[caseNr % halfWay] += solutions;
                 perCount[caseNr % halfWay + halfWay] += solutions;
                 count += 2 * solutions;
             }
-#endif
             WHEN_TIMING(realCase++;)
         }
 
@@ -137,22 +105,22 @@ uint64_t CountIterating::solve() {
                 auto maxDur = bulk::max(durVar);
 
                 if (s == 0) {
-                        world.log("Min: %d, Max: %d = %f", minDur, maxDur, static_cast<float>(maxDur) / static_cast<float>(minDur));
-                }
-        )
+                    world.log("Min: %d, Max: %d = %f", minDur, maxDur, static_cast<float>(maxDur) / static_cast<float>(minDur));
+                })
 
-      // Exchange counts
-      auto res = bulk::foldl_each(perCount, [](auto& lhs, auto& rhs) { lhs += rhs; }, uint64_t (0));
+        // Exchange counts
+        auto res = bulk::foldl_each(
+                perCount, [](auto &lhs, auto &rhs) { lhs += rhs; }, uint64_t(0));
 
-      uint64_t totalCount = std::accumulate(res.begin(), res.end(), uint64_t(0));
+        uint64_t totalCount = std::accumulate(res.begin(), res.end(), uint64_t(0));
 
-      if (s == 0) {
+        if (s == 0) {
             val = totalCount;
 //            uint32_t i = 0;
 //            for (auto r : res) {
 //                std::cout << "For Q0 = " << i++ << " got " << r << " results\n";
 //            }
-      }
+        }
     });
 
     return val;
