@@ -66,6 +66,10 @@ uint64_t CountIterating::solve() {
 
         // Count all solutions
         auto count = bulk::var<uint64_t>(world, 0u);
+        auto perCount = bulk::coarray<uint64_t>(world, N);
+        for (auto& c : perCount) {
+            c = 0;
+        }
         uint32_t ranCases = 0;
 
 #ifdef PRIME_LOAD_BALANCE
@@ -109,10 +113,14 @@ uint64_t CountIterating::solve() {
             uint64_t solutions = countSolutions(board);
 #ifdef REFLECT_SIMPLE
             if (isOdd && caseNr % halfWay == halfWay - 1) {
+                perCount[i % halfWay] += count;
+#else
+                perCount[caseNr % N] += solutions;
 #endif
-                count += solutions;
 #ifdef REFLECT_SIMPLE
             } else {
+                perCount[caseNr % halfWay] += solutions;
+                perCount[caseNr % halfWay + halfWay] += solutions;
                 count += 2 * solutions;
             }
 #endif
@@ -134,11 +142,17 @@ uint64_t CountIterating::solve() {
         )
 
       // Exchange counts
-      uint64_t totalCount = bulk::sum(count);
+      auto res = bulk::foldl_each(perCount, [](auto& lhs, auto& rhs) { lhs += rhs; }, uint64_t (0));
+
+      uint64_t totalCount = std::accumulate(res.begin(), res.end(), uint64_t(0));
 
       if (s == 0) {
             val = totalCount;
-        }
+//            uint32_t i = 0;
+//            for (auto r : res) {
+//                std::cout << "For Q0 = " << i++ << " got " << r << " results\n";
+//            }
+      }
     });
 
     return val;
