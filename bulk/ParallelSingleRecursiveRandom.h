@@ -13,7 +13,7 @@ private:
     uint32_t N;
     uint32_t P;
 
-    uint32_t findSolution(bulk::world &world, std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag, bulk::var<bool> *done);
+    uint32_t findSolution(bulk::world &world, std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag);
 
 public:
     void solve();

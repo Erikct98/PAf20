@@ -6,7 +6,7 @@
 #include <inttypes.h>
 #include <random>
 
-inline void shuffle(std::vector<uint32_t> array) {
+inline void shuffle(std::vector<uint32_t> &array) {
     size_t n = array.size();
     if (n > 1) {
         size_t i;
