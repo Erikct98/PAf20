@@ -24,7 +24,7 @@ uint32_t CountIterating::countSolutions(Board &board) const {
     return count;
 }
 
-//#define TIME_INDIVIDUAL
+#define TIME_INDIVIDUAL
 
 #ifdef TIME_INDIVIDUAL
 #define WHEN_TIMING(x) x
@@ -33,6 +33,16 @@ uint32_t CountIterating::countSolutions(Board &board) const {
 #endif
 
 uint64_t CountIterating::solve() {
+
+    if (N <= 1) {
+        return 1;
+    }
+    if (N <= 3) {
+        return 0;
+    }
+
+    // N is at least 4
+
     WHEN_TIMING(auto begin = std::chrono::steady_clock::now();)
     bulk::thread::environment env;
     uint64_t val;
@@ -45,10 +55,21 @@ uint64_t CountIterating::solve() {
         // Compute number of cases
         uint32_t depth = 1;
         uint32_t cases = (N + 1) / 2;
+
+        uint32_t fullCases = (N + 1) / 2;
+        std::vector<uint32_t> startFactors;
+        startFactors.push_back(1);
+
         while (p * p > cases && depth < N) {
+            startFactors.push_back(fullCases);
             cases *= N - depth;
+            fullCases *= N;
             depth++;
         }
+
+//        world.log_once("Using depth: %d, %d, %d, %d", depth, startFactors.size(), cases, fullCases);
+//
+        std::vector<uint32_t> startIndices(depth, -1);
 
         // Init board
         Board board{N};
@@ -58,7 +79,7 @@ uint64_t CountIterating::solve() {
 
         // Count all solutions
         auto count = bulk::var<uint64_t>(world, 0u);
-        auto perCount = bulk::coarray<uint64_t>(world, N, 0lu);
+        auto perCount = bulk::coarray<uint64_t>(world, fullCases, 0lu);
 
         for (uint32_t caseNr = s; caseNr < cases; caseNr += p) {
             board.reset();
@@ -76,21 +97,35 @@ uint64_t CountIterating::solve() {
                     idx = i % (N - j);
                     i /= (N - j);
                 }
+
                 uint64_t available = board.getAvailable();
-                if ((available & (1u << placeHolder[j + idx])) == 0) break;
-                board.push(1u << placeHolder[j + idx]);
-                std::swap(placeHolder[j], placeHolder[j + idx]);
+                unsigned long &value = placeHolder[j + idx];
+                startIndices[j] = value;
+                if ((available & (1u << value)) == 0) break;
+                board.push(1u << value);
+                std::swap(placeHolder[j], value);
             }
             if (j != depth) continue;// Diagonal clash -> go to next case
 
             // Count number of solutions
-            uint64_t solutions = countSolutions(board);
-            if (isOdd && caseNr % halfWay == halfWay - 1) {
-                perCount[i % halfWay] += count;
+            uint64_t solutions = countSolutions(board, iter);
+            uint32_t index = std::inner_product(startIndices.begin(), startIndices.end(), startFactors.begin(), 0u);
+
+//            world.log("%d found %07lu for %d, %d idx: %d", s, solutions, startIndices[0], startIndices[1], index);
+
+//            if (isOdd && caseNr % halfWay == halfWay - 1) {
+//                perCount[caseNr % halfWay] += solutions;
+//            } else {
+//                perCount[caseNr % halfWay] += solutions;
+//                perCount[N - 1 - (caseNr % halfWay)] += solutions;
+//            }
+
+            if (isOdd && startIndices[0] == halfWay - 1) {
+                perCount[index] += solutions;
             } else {
-                perCount[caseNr % halfWay] += solutions;
-                perCount[caseNr % halfWay + halfWay] += solutions;
-                count += 2 * solutions;
+                perCount[index] += 2 * solutions;
+//                perCount[caseNr % halfWay + halfWay] += solutions;
+//                count += 2 * solutions;
             }
             WHEN_TIMING(realCase++;)
         }
@@ -98,7 +133,8 @@ uint64_t CountIterating::solve() {
         WHEN_TIMING(
                 auto end = std::chrono::steady_clock::now();
                 auto duration = end - begin;
-                world.log("%02ud had %ud real cases (in %07ld ms, %d s)", s, realCase, static_cast<float>(cases) / p, std::chrono::duration_cast<std::chrono::microseconds>(duration).count(), std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+                uint64_t countMe = std::accumulate(perCount.begin(), perCount.end(), uint64_t(0));
+                world.log("%02ud had %ud, [%u] real cases (in %07ld ms, %d s)", s, realCase, countMe, static_cast<float>(cases) / p, std::chrono::duration_cast<std::chrono::microseconds>(duration).count(), std::chrono::duration_cast<std::chrono::seconds>(duration).count());
 
                 auto durVar = bulk::var<decltype(duration.count())>(world, std::chrono::duration_cast<std::chrono::microseconds>(duration).count());
                 auto minDur = bulk::min(durVar);
@@ -116,10 +152,11 @@ uint64_t CountIterating::solve() {
 
         if (s == 0) {
             val = totalCount;
-//            uint32_t i = 0;
-//            for (auto r : res) {
+            uint32_t i = 0;
+            for (auto r : res) {
+                printf("For Q0 = %02d got %d\n", i++, r);
 //                std::cout << "For Q0 = " << i++ << " got " << r << " results\n";
-//            }
+            }
         }
     });
 
