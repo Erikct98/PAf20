@@ -13,47 +13,34 @@
 #define DISTRIBUTE
 #define RANDOM
 
-const static uint32_t FOUND = -1;
 const static uint32_t SYNC_THRESHOLD = 2000000;
 
 using Board = std::vector<uint32_t>;
 
-uint32_t ParallelSingleRecursiveRandom::findSolution(bulk::world &world, Board &board, uint32_t idx, DiagonalBitSet &diag) {
-    if (idx == N) {
-        return FOUND;
-    }
-
-    uint32_t iterCount = 0;
+bool ParallelSingleRecursiveRandom::findSolution(bulk::world &world, Board &board, uint32_t idx,
+                                                 DiagonalBitSet &diag, bulk::var<bool> *done, uint32_t *iterCount) {
     for (uint32_t i = idx; i < N; i++) {
-        iterCount++;
-
+        (*iterCount)++;
         if (!diag.hasInterference(idx, board[i])) {
             diag.set(idx, board[i]);
             std::swap(board[idx], board[i]);
-            uint32_t res = findSolution(world, board, idx + 1, diag);
-            if (res == FOUND) return res;
-            iterCount += res;
+            bool found = findSolution(world, board, idx + 1, diag, done, iterCount);
+            if (found) return true;
             std::swap(board[idx], board[i]);
             diag.reset(idx, board[i]);
         }
-
-        if (iterCount > SYNC_THRESHOLD) {
-            iterCount = 0;
+        if (*iterCount > SYNC_THRESHOLD) {
+            *iterCount = 0;
             world.sync();
+            if (done->value()) return true;
         }
     }
-    return iterCount;
+    return idx == N;
 }
 
 
 void ParallelSingleRecursiveRandom::solve() {
     bulk::thread::environment env;
-
-#ifdef RANDOM
-#ifdef DISTRIBUTE
-    uint64_t SEED = time(0) * N * P;
-#endif
-#endif
 
     env.spawn(P, [&](bulk::world &world) {
         auto s = world.rank();
@@ -71,7 +58,7 @@ void ParallelSingleRecursiveRandom::solve() {
 #ifdef RANDOM
         // Each processor chooses an arbitrary starting permutation
         // and starts searching
-        srand(time(0) * (s + 1) * p);
+        srand(SEED * (s + 1) * p);
 #ifndef DISTRIBUTE
         for (uint32_t j = 0; j < N; j++) board[j] = j;
         shuffle(board);
@@ -95,7 +82,7 @@ void ParallelSingleRecursiveRandom::solve() {
         for (uint32_t caseNr = s; caseNr < nrCases && !found; caseNr += p) {
             // Reset seed, board and diagonals
             srand(SEED);
-            for (uint32_t i = 0; i < N; i ++) board[i] = i;
+            for (uint32_t i = 0; i < N; i++) board[i] = i;
 #ifdef RANDOM
             shuffle(board);
 #endif
@@ -104,11 +91,11 @@ void ParallelSingleRecursiveRandom::solve() {
             // Set board and diagonals
             uint32_t i = caseNr, j = 0, idx;
             for (; j < depth; j++) {
-                idx = caseNr % (N - j);
+                idx = i % (N - j);
                 i /= N - j;
                 if (diag.hasInterference(j, board[j + idx])) break;
                 diag.set(j, board[j + idx]);
-                std::swap(board[j], board[j+idx]);
+                std::swap(board[j], board[j + idx]);
             }
             found = j == depth;
         }
@@ -124,9 +111,19 @@ void ParallelSingleRecursiveRandom::solve() {
         }
         std::cout << ") by " << s << " / " << p << "\n";
 #endif
+        auto done = bulk::var<bool>(world);
+        uint32_t iterCount = 0;
 
         // Find solution
-        findSolution(world, board, start_idx, diag);
+        findSolution(world, board, start_idx, diag, &done, &iterCount);
+
+        // Stop the other processes
+        if (!done.value()) {
+            for (int i = 0; i < p; i++) {
+                bulk::put(i, true, done);
+            }
+            world.sync();
+        }
 
 #ifdef PRINT_SOLUTION
         // Print found solution
@@ -136,7 +133,5 @@ void ParallelSingleRecursiveRandom::solve() {
         }
         std::cout << ") by " << s << " / " << p << "\n";
 #endif
-        // Abort the other processes
-        world.abort();
     });
 }

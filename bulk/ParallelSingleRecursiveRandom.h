@@ -12,12 +12,17 @@ class ParallelSingleRecursiveRandom {
 private:
     uint32_t N;
     uint32_t P;
+    uint32_t SEED;
 
-    uint32_t findSolution(bulk::world &world, std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag);
+    bool findSolution(bulk::world &world, std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag,
+                          bulk::var<bool> *done, uint32_t *iterCount);
 
 public:
     void solve();
-    ParallelSingleRecursiveRandom(int N, int P) : N(N), P(P) {};
+    ParallelSingleRecursiveRandom(int N, int P) : N(N), P(P) {
+        SEED = time(0) * N * P;
+    };
+    ParallelSingleRecursiveRandom(int N, int P, int SEED) : N(N), P(P), SEED(SEED){};
 };
 
 #endif //PAF20_PARALLELALGORITHMS_PARALLELSINGLERECURSIVERANDOM_H
