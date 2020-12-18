@@ -103,18 +103,18 @@ uint64_t CountIterating::solve() {
                 board.push(1u << placeHolder[j + idx]);
                 std::swap(placeHolder[j], placeHolder[j + idx]);
             }
-            if (j != depth) continue;// Diagonal clash -> go to next case
+#ifdef REFLECT_SIMPLE
+            if (j != depth || (idOdd && depth > 1 && placeHolder[0] == halfWay && placeHolder[1] > placeHolder[0])) continue; // Diagonal clash, or unnecessary count
+#else
+            if (j != depth) continue; // Diagonal clash -> go to next case
+#endif
 
             // Count number of solutions
             uint64_t solutions = countSolutions(board);
 #ifdef REFLECT_SIMPLE
-            if (isOdd && caseNr % halfWay == halfWay - 1) {
-#endif
-                count += solutions;
-#ifdef REFLECT_SIMPLE
-            } else {
-                count += 2 * solutions;
-            }
+            count += 2 * solutions; // Double count
+#else
+            count += solutions;
 #endif
             WHEN_TIMING(realCase++;)
         }
