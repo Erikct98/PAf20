@@ -1,12 +1,9 @@
 #ifndef PAF20_PARALLELALGORITHMS_PARALLELSINGLERECURSIVERANDOM_H
 #define PAF20_PARALLELALGORITHMS_PARALLELSINGLERECURSIVERANDOM_H
 
-#include <bulk/backends/thread/environment.hpp>
-#include <deque>
-#include <iostream>
-#include <cstdint>
-#include "chess.h"
 #include "DiagonalBitSet.h"
+#include "chess.h"
+#include <bulk/variable.hpp>
 
 class ParallelSingleRecursiveRandom {
 private:
@@ -15,13 +12,13 @@ private:
     uint32_t SEED;
 
     bool findSolution(bulk::world &world, std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag,
-                          bulk::var<bool> *done, uint32_t *iterCount);
+                          bulk::var<bool>& done, uint32_t& iterCount);
 
 public:
+    const uint32_t SYNC_THRESHOLD = 1000000;
+
     void solve();
-    ParallelSingleRecursiveRandom(int N, int P) : N(N), P(P) {
-        SEED = time(0) * N * P;
-    };
+    ParallelSingleRecursiveRandom(int N, int P);
     ParallelSingleRecursiveRandom(int N, int P, int SEED) : N(N), P(P), SEED(SEED){};
 };
 

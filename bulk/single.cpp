@@ -39,11 +39,12 @@ int main(int argc, char** argv) {
     }
 
 
-    ParallelSingleIteratingRandom psir(N, P);
+    ParallelSingleRecursiveRandom psir(N, P);
+    std::cout << N << ';' << P << ';' << psir.SYNC_THRESHOLD << ';';
     auto begin = std::chrono::steady_clock::now();
     psir.solve();
     auto end = std::chrono::steady_clock::now();
-    std::cout << GET_NAME(psir) << " for N=" << N << " P=" << P << " found in " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << " micro s (" << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << " s)\n";
+    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << '\n';
 
     return 0;
 }
