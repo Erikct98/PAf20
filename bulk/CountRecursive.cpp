@@ -7,13 +7,21 @@ CountRecursive::CountRecursive(uint32_t n, uint32_t procs) : N(n), procs(procs) 
 using Board = std::vector<uint32_t>;
 
 
-uint64_t CountRecursive::countSolutions(std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag) {
+uint64_t CountRecursive::countSolutions(std::vector<uint32_t> &board, uint32_t idx, DiagonalBitSet &diag, bulk::coarray<uint64_t>& counts) {
     if (idx == board.size()) {
         // should never happen!
         return 1;
     }
     if (idx == board.size() - 1) {
-        return !diag.hasInterference(idx, board[idx]);
+        if (!diag.hasInterference(idx, board[idx])) {
+            uint32_t offset = 0;
+            for (unsigned int i : board) {
+                ++counts[offset + i];
+                offset += N;
+            }
+            return 1;
+        }
+        return 0;
     }
 
     uint32_t count = 0;
@@ -21,7 +29,7 @@ uint64_t CountRecursive::countSolutions(std::vector<uint32_t> &board, uint32_t i
         if (!diag.hasInterference(idx, board[i])) {
             diag.set(idx, board[i]);
             std::swap(board[idx], board[i]);
-            count += countSolutions(board, idx + 1, diag);
+            count += countSolutions(board, idx + 1, diag, counts);
             std::swap(board[i], board[idx]);
             diag.reset(idx, board[i]);
         }
@@ -73,6 +81,7 @@ uint64_t CountRecursive::solve() {
 #endif
 
         auto count = bulk::var<uint64_t>(world, 0u);
+        auto perCount = bulk::coarray<uint64_t>(world, N * N, 0lu);
         for (uint32_t caseNr = s; caseNr < cases; caseNr += p) {
             // Initialize board
             for (uint32_t j = 0; j < N; j++) board[j] = j;
@@ -101,7 +110,7 @@ uint64_t CountRecursive::solve() {
                 continue;// Diagonal clash -> go to next case
             }
 
-            uint64_t solutions = countSolutions(board, depth, diag);
+            uint64_t solutions = countSolutions(board, depth, diag, perCount);
 #ifdef REFLECT_SIMPLE
             if (isOdd && caseNr % halfWay == halfWay - 1) {
 #endif
@@ -123,8 +132,20 @@ uint64_t CountRecursive::solve() {
         // Combine all counts
         uint64_t totalCount = bulk::sum(count);
 
+        auto res = bulk::foldl_each(
+                perCount, [](auto &lhs, auto &rhs) { lhs += rhs; }, uint64_t(0));
+
         if (s == 0) {
             val = totalCount;
+            for (uint32_t y = 0; y < N; ++y) {
+                for (uint32_t x = 0; x < N; ++x) {
+                    printf("%08lu", res[y + N * x], (double) res[y + N * x] / (totalCount) * 100.0);
+                    if (x != N - 1) {
+                        std::cout << "; ";
+                    }
+                }
+                std::cout << '\n';
+            }
         }
     });
 

@@ -1,7 +1,9 @@
 #include "CountIterating.h"
 #include "CountRecursive.h"
 #include "ParallelSingleRecursiveRandom.h"
+#include <chrono>
 #include <iostream>
+#include <map>
 
 bool verify(uint64_t val, uint32_t N) {
   static std::map<uint32_t, uint64_t> validCountsAll = {
@@ -78,7 +80,7 @@ int main(int argc, char** argv) {
     }
 
 
-    CountIterating psir(N, P);
+    CountRecursive psir(N, P);
     auto begin = std::chrono::steady_clock::now();
     uint64_t count = psir.solve();
     auto end = std::chrono::steady_clock::now();
