@@ -108,7 +108,7 @@ uint64_t CountIterating::solve() {
             if (j != depth) continue;// Diagonal clash -> go to next case
 
             // Count number of solutions
-            uint64_t solutions = countSolutions(board, iter);
+            uint64_t solutions = countSolutions(board);
             uint32_t index = std::inner_product(startIndices.begin(), startIndices.end(), startFactors.begin(), 0u);
 
 //            world.log("%d found %07lu for %d, %d idx: %d", s, solutions, startIndices[0], startIndices[1], index);
