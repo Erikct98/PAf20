@@ -1,9 +1,11 @@
+#include <bulk/backends/mpi/mpi.hpp>
+#include <bulk/coarray.hpp>
+#include <bulk/algorithm.hpp>
 #include <chrono>
 #include <iostream>
 #include <map>
 #include <numeric>
 #include <vector>
-#include <bulk/backends/mpi/mpi.hpp>
 
 
 class Board {
