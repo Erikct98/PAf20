@@ -3,7 +3,6 @@
 #include <map>
 #include <numeric>
 #include <vector>
-#include <world.hpp>
 #include <bulk/backends/mpi/mpi.hpp>
 
 
