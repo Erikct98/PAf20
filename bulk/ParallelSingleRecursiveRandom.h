@@ -15,7 +15,7 @@ private:
                           bulk::var<bool>& done, uint32_t& iterCount);
 
 public:
-    const uint32_t SYNC_THRESHOLD = 1000000;
+    const uint32_t SYNC_THRESHOLD = 1000;
 
     void solve();
     ParallelSingleRecursiveRandom(int N, int P);

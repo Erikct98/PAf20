@@ -105,7 +105,10 @@ uint64_t CountIterating::solve() {
                 board.push(1u << value);
                 std::swap(placeHolder[j], value);
             }
-            if (j != depth || (idOdd && depth > 1 && placeHolder[0] == halfWay && placeHolder[1] > placeHolder[0])) continue; // Diagonal clash, or unnecessary count
+            if (j != depth
+                || (isOdd && depth > 1 && placeHolder[0] == halfWay && placeHolder[1] > placeHolder[0])) {
+                continue;// Diagonal clash, or unnecessary count
+            }
 
             // Count number of solutions
             uint64_t solutions = countSolutions(board);
@@ -147,11 +150,11 @@ uint64_t CountIterating::solve() {
 
         if (s == 0) {
             val = totalCount;
-            uint32_t i = 0;
-            for (auto r : res) {
-                printf("For Q0 = %02d got %d\n", i++, r);
-//                std::cout << "For Q0 = " << i++ << " got " << r << " results\n";
-            }
+//            uint32_t i = 0;
+//            for (auto r : res) {
+////                printf("For Q0 = %02d got %d\n", i++, r);
+////                std::cout << "For Q0 = " << i++ << " got " << r << " results\n";
+//            }
         }
     });
 

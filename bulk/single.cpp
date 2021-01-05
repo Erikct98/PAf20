@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
 
 
     ParallelSingleRecursiveRandom psir(N, P);
-    std::cout << N << ';' << P << ';' << psir.SYNC_THRESHOLD << ';';
+    std::cout << N << ';' << P << ';';
     auto begin = std::chrono::steady_clock::now();
     psir.solve();
     auto end = std::chrono::steady_clock::now();

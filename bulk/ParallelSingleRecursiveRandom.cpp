@@ -11,7 +11,7 @@
 // Decide whether to distribute the cases, or have each
 // processor start with a random start permutation.
 // At least one should be defined.
-//#define DISTRIBUTE
+#define DISTRIBUTE
 #define RANDOM
 
 // dist
