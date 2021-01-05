@@ -1,10 +1,10 @@
 #include <chrono>
-#include <environment.hpp>
 #include <iostream>
 #include <map>
 #include <numeric>
 #include <vector>
 #include <world.hpp>
+#include <bulk/backends/mpi/mpi.hpp>
 
 
 class Board {
@@ -260,7 +260,7 @@ uint64_t CountIterating::solve() {
     // N is at least 4
 
     WHEN_TIMING(auto begin = std::chrono::steady_clock::now();)
-    bulk::thread::environment env;
+    bulk::mpi::environment env;
     uint64_t val;
     env.spawn(procs, [&](bulk::world &world) {
       uint32_t s = world.rank();
