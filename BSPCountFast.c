@@ -196,8 +196,8 @@ void countQueens() {
 
     /** Setup structs **/
     // Local
-    long *counts = vecalloci(P);
-    bsp_push_reg(counts, P * sizeof(long));
+    ll *counts = malloc(P * sizeof(ll));
+    bsp_push_reg(counts, P * sizeof(ll));
 
     bsp_sync();
     ll count = 0u;
@@ -332,8 +332,6 @@ int main(int argc, char **argv) {
             return EXIT_FAILURE;
         }
     }
-
-    printf("Sizes: long=%lu, int=%lu, ll=%lu", sizeof(long), sizeof(int), sizeof(ll));
 
     printf("Running N=%d, P=%d\n", N, P);
     bsp_init(&countQueens, argc, argv);
