@@ -105,10 +105,7 @@ uint64_t CountIterating::solve() {
                 board.push(1u << value);
                 std::swap(placeHolder[j], value);
             }
-            if (j != depth
-                || (isOdd && depth > 1 && placeHolder[0] == halfWay && placeHolder[1] > placeHolder[0])) {
-                continue;// Diagonal clash, or unnecessary count
-            }
+            if (j != depth || (isOdd && depth > 1 && placeHolder[0] == halfWay - 1 && placeHolder[1] > placeHolder[0])) continue;
 
             // Count number of solutions
             uint64_t solutions = countSolutions(board);

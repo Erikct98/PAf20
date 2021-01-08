@@ -1,4 +1,8 @@
+#ifndef USE_THREAD
 #include <bulk/backends/mpi/mpi.hpp>
+#else
+#include <bulk/backends/thread/thread.hpp>
+#endif
 #include <bulk/coarray.hpp>
 #include <bulk/algorithm.hpp>
 #include <chrono>
@@ -261,7 +265,13 @@ uint64_t CountIterating::solve() {
     // N is at least 4
 
     WHEN_TIMING(auto begin = std::chrono::steady_clock::now();)
+
+#ifndef USE_THREAD
     bulk::mpi::environment env;
+#else
+    bulk::thread::environment env;
+#endif
+
     uint64_t val;
     env.spawn(procs, [&](bulk::world &world) {
       uint32_t s = world.rank();
@@ -323,7 +333,7 @@ uint64_t CountIterating::solve() {
               std::swap(placeHolder[j], value);
           }
           if (j != depth
-              || (isOdd && depth > 1 && placeHolder[0] == halfWay && placeHolder[1] > placeHolder[0])) {
+              || (isOdd && depth > 1 && placeHolder[0] == halfWay - 1 && placeHolder[1] > placeHolder[0])) {
               continue;// Diagonal clash, or unnecessary count
           }
 
