@@ -296,6 +296,8 @@ uint64_t CountIterating::solve() {
           depth++;
       }
 
+//      std::cout << "Actual depth=" << depth << std::endl;
+
 //        world.log_once("Using depth: %d, %d, %d, %d", depth, startFactors.size(), cases, fullCases);
 //
       std::vector<uint32_t> startIndices(depth, -1);
@@ -345,13 +347,12 @@ uint64_t CountIterating::solve() {
 
 //            world.log("%d found %07lu for %d, %d idx: %d", s, solutions, startIndices[0], startIndices[1], index);
 
-//            if (isOdd && caseNr % halfWay == halfWay - 1) {
-//                perCount[caseNr % halfWay] += solutions;
-//            } else {
-//                perCount[caseNr % halfWay] += solutions;
-//                perCount[N - 1 - (caseNr % halfWay)] += solutions;
-//            }
-          perCount[index] += 2 * solutions;
+          if (isOdd && placeHolder[0] == halfWay - 1 && depth == 1) {
+              perCount[index] += solutions;
+          } else {
+              perCount[index] += 2 * solutions;
+          }
+
 //                perCount[caseNr % halfWay + halfWay] += solutions;
 //                count += 2 * solutions;
           WHEN_TIMING(realCase++;)
