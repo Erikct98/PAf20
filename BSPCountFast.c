@@ -315,6 +315,9 @@ void countQueens() {
 }
 
 int main(int argc, char **argv) {
+
+    bsp_init(&countQueens, argc, argv);
+
     if (argc > 2) {
         N = atoi(argv[1]);
         P = atoi(argv[2]);
@@ -334,7 +337,7 @@ int main(int argc, char **argv) {
     }
 
     printf("Running N=%d, P=%d\n", N, P);
-    bsp_init(&countQueens, argc, argv);
+
     countQueens();
 
     if (N <= 27) {
