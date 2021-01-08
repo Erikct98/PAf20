@@ -193,11 +193,13 @@ void countQueens() {
     bsp_begin(P);
     long pid = bsp_pid();
 
-    /** Setup structs **/
-    // Local
+
+    printf("I %ld am going to allocate: %u lls\n", pid, P);
     ll *counts = malloc(P * sizeof(ll));
     bsp_push_reg(counts, P * sizeof(ll));
     bsp_sync();
+
+    printf("Wowie it sure is registerd now! (%ld) %u\n", pid, P);
 
     // Begin timing
     startTime = bsp_time();
