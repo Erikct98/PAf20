@@ -47,7 +47,7 @@ ll answers[] = {
 
 
 static int procs;
-static int N;
+static int boardSize;
 static ll ANSWER = 0;
 
 bool bit_set(ll val, int idx) {
@@ -147,7 +147,7 @@ void destroy_board(struct Board* board) {
 }
 
 
-ll count_board(struct Board* pBoard) {
+ll count_board(struct Board* pBoard, int N) {
     ll count = 0u;
     int stopIdx = pBoard->idx - 1;
     output("Stopping at: %d\n", stopIdx);
@@ -187,19 +187,31 @@ void swap(int* a, int* b) {
 void countQueens() {
     double startTime, endTime;
 
-    int P = procs;
+
 
     // Start process
-    bsp_begin(P);
+    bsp_begin(procs);
     long pid = bsp_pid();
 
+    // initial phase communicate inputs!
+    int P = bsp_nprocs();
+    int N = 0;
+    if (pid == 0) {
+        // we have N
+        N = boardSize;
+    }
 
-    printf("I %ld am going to allocate: %u lls\n", pid, P);
+    bsp_push_reg(&N, sizeof(int));
+
+    printf("I %ld am going to allocate: %u lls for board of size %u\n", pid, P, N);
     ll *counts = malloc(P * sizeof(ll));
     bsp_push_reg(counts, P * sizeof(ll));
     bsp_sync();
 
-    printf("Wowie it sure is registerd now! (%ld) %u\n", pid, P);
+    bsp_get(0,&N,0,&N, sizeof(int));
+    bsp_sync();
+
+    printf("Wowie it sure is registerd and gotten N now! (%ld) %u for N=%u\n", pid, P, N);
 
     // Begin timing
     startTime = bsp_time();
@@ -268,7 +280,7 @@ void countQueens() {
         output("\n");
 
 
-        ll solutions = count_board(&board);
+        ll solutions = count_board(&board, N);
 
 #ifdef DETAIL_PRINT
         printf("Given: ");
@@ -323,12 +335,12 @@ int main(int argc, char **argv) {
     bsp_init(&countQueens, argc, argv);
 
     if (argc > 2) {
-        N = atoi(argv[1]);
+        boardSize = atoi(argv[1]);
         procs = atoi(argv[2]);
     } else {
         printf("What size chessboard do we use?\n");
         fflush(stdout);
-        if (scanf("%u", &N) != 1) {
+        if (scanf("%u", &boardSize) != 1) {
             printf("Invalid size!");
             return EXIT_FAILURE;
         }
@@ -340,7 +352,7 @@ int main(int argc, char **argv) {
         }
     }
 
-    if (N < 0 || procs < 1) {
+    if (boardSize < 0 || procs < 1) {
         printf("Please give valid input!\n");
         return EXIT_FAILURE;
     }
@@ -350,15 +362,15 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Running N=%d, P=%d\n", N, procs);
+    printf("Running N=%d, P=%d\n", boardSize, procs);
 
     countQueens();
 
-    if (N <= 27) {
-        if (answers[N] != ANSWER) {
-            printf("Wrong answer! got %llu vs. %llu\n", ANSWER, answers[N]);
+    if (boardSize <= 27) {
+        if (answers[boardSize] != ANSWER) {
+            printf("Wrong answer! got %llu vs. %llu\n", ANSWER, answers[boardSize]);
         } else {
-            printf("Got correct answer! for (N=%u)\n", N);
+            printf("Got correct answer! for (N=%u)\n", boardSize);
         }
     }
 
