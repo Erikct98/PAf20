@@ -368,8 +368,6 @@ int main(int argc, char **argv) {
     if (boardSize <= 27) {
         if (answers[boardSize] != ANSWER) {
             printf("Wrong answer! got %llu vs. %llu\n", ANSWER, answers[boardSize]);
-        } else {
-            printf("Got correct answer!\n");
         }
     }
 
