@@ -203,7 +203,7 @@ void countQueens() {
 
     bsp_push_reg(&N, sizeof(int));
 
-    printf("I %ld am going to allocate: %u lls for board of size %u\n", pid, P, N);
+    output("I %ld am going to allocate: %u lls for board of size %u\n", pid, P, N);
     ll *counts = malloc(P * sizeof(ll));
     bsp_push_reg(counts, P * sizeof(ll));
     bsp_sync();
@@ -211,7 +211,7 @@ void countQueens() {
     bsp_get(0,&N,0,&N, sizeof(int));
     bsp_sync();
 
-    printf("Wowie it sure is registerd and gotten N now! (%ld) %u for N=%u\n", pid, P, N);
+    output("Wowie it sure is registerd and gotten N now! (%ld) %u for N=%u\n", pid, P, N);
 
     // Begin timing
     startTime = bsp_time();
@@ -363,14 +363,13 @@ int main(int argc, char **argv) {
     }
 
     printf("Running N=%d, P=%d\n", boardSize, procs);
-
     countQueens();
 
     if (boardSize <= 27) {
         if (answers[boardSize] != ANSWER) {
             printf("Wrong answer! got %llu vs. %llu\n", ANSWER, answers[boardSize]);
         } else {
-            printf("Got correct answer! for (N=%u)\n", boardSize);
+            printf("Got correct answer!\n");
         }
     }
 
