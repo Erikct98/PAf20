@@ -207,6 +207,8 @@ int main(int argc, char** argv) {
         }
     }
 
+    std::cout << "Running: board=" << N << " p=" << P << std::endl;
+
 
     CountIterating psir(N, P);
     auto begin = std::chrono::steady_clock::now();
