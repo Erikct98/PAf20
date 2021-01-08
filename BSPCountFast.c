@@ -191,15 +191,15 @@ void countQueens() {
     bsp_begin(P);
     long pid = bsp_pid();
 
-    // Begin timing
-    startTime = bsp_time();
-
     /** Setup structs **/
     // Local
     ll *counts = malloc(P * sizeof(ll));
     bsp_push_reg(counts, P * sizeof(ll));
-
     bsp_sync();
+
+    // Begin timing
+    startTime = bsp_time();
+
     ll count = 0u;
 
     int depth = 1;
@@ -308,7 +308,7 @@ void countQueens() {
     free(spots);
     destroy_board(&board);
 
-    bsp_pop_reg(&counts);
+    bsp_pop_reg(counts);
     free(counts);
 
     bsp_end();
@@ -334,6 +334,16 @@ int main(int argc, char **argv) {
             printf("Invalid size!");
             return EXIT_FAILURE;
         }
+    }
+
+    if (N < 0 || P < 1) {
+        printf("Please give valid input!\n");
+        return EXIT_FAILURE;
+    }
+
+    if (P > bsp_nprocs()) {
+        printf("Only %u procs available\n", bsp_nprocs());
+        return EXIT_FAILURE;
     }
 
     printf("Running N=%d, P=%d\n", N, P);
