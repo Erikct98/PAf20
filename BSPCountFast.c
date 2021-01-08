@@ -196,7 +196,7 @@ void countQueens() {
 
     /** Setup structs **/
     // Local
-    ll *counts = vecalloci(P);
+    long *counts = vecalloci(P);
     bsp_push_reg(counts, P * sizeof(long));
 
     bsp_sync();
