@@ -46,7 +46,7 @@ ll answers[] = {
 };
 
 
-static int P;
+static int procs;
 static int N;
 static ll ANSWER = 0;
 
@@ -187,6 +187,8 @@ void swap(int* a, int* b) {
 void countQueens() {
     double startTime, endTime;
 
+    int P = procs;
+
     // Start process
     bsp_begin(P);
     long pid = bsp_pid();
@@ -320,7 +322,7 @@ int main(int argc, char **argv) {
 
     if (argc > 2) {
         N = atoi(argv[1]);
-        P = atoi(argv[2]);
+        procs = atoi(argv[2]);
     } else {
         printf("What size chessboard do we use?\n");
         fflush(stdout);
@@ -330,23 +332,23 @@ int main(int argc, char **argv) {
         }
         printf("How many processors do we use?\n");
         fflush(stdout);
-        if (scanf("%u", &P) != 1) {
+        if (scanf("%u", &procs) != 1) {
             printf("Invalid size!");
             return EXIT_FAILURE;
         }
     }
 
-    if (N < 0 || P < 1) {
+    if (N < 0 || procs < 1) {
         printf("Please give valid input!\n");
         return EXIT_FAILURE;
     }
 
-    if (P > bsp_nprocs()) {
+    if (procs > bsp_nprocs()) {
         printf("Only %u procs available\n", bsp_nprocs());
         return EXIT_FAILURE;
     }
 
-    printf("Running N=%d, P=%d\n", N, P);
+    printf("Running N=%d, P=%d\n", N, procs);
 
     countQueens();
 
